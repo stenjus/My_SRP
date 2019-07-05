@@ -12,3 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48fafc5c9c22f9d4f9ac1f48df80ee74, type: 3}
   m_Name: MyRenderPipeline
   m_EditorClassIdentifier: 
+  _ShaderErrorMaterial: {fileID: 2100000, guid: a4b5a73f102d31c47801b20520833f10,
+    type: 2}
+  _InDynamicBatching: 0
+  _GPUInstancing: 1
