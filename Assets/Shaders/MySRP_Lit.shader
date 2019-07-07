@@ -1,4 +1,4 @@
-﻿Shader "My SRP/Unlit"
+﻿Shader "My SRP/Lit"
 {
     Properties
     {
@@ -10,11 +10,11 @@
         {
 			HLSLPROGRAM
 			#pragma target 3.5
-			#pragma vertex Unlit_Pas_Vertex
-			#pragma fragment Unlit_Pas_Fragment
+			#pragma vertex Lit_Pas_Vertex
+			#pragma fragment Lit_Pas_Fragment
 			#pragma multi_compile_instancing
 			#pragma instancing_options assumeuniformscaling
-			#include "/ShaderLibrary/_MySRP_Unlit.hlsl"
+			#include "/ShaderLibrary/_MySRP_Lit.hlsl"
 
 			ENDHLSL
         }

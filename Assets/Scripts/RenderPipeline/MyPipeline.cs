@@ -12,13 +12,32 @@ public class MyPipeline : RenderPipeline
     Material _ErrorMaterial;
     MyPipelineAsset _PipeLineAsset;
 
+    //Lighting variable
+    static int _maxVisibleLights = 4;
+    static int _VisibleLightColorID = Shader.PropertyToID("_VisibleLightColor");
+    static int _VisibleLightDirectionOrPositionID = Shader.PropertyToID("_VisibleLightDirectionOrPosition");
+    static int _maxVisibleLightsID = Shader.PropertyToID("_MaxVisibleLights");
+    static int _visibleLightAttenuationID = Shader.PropertyToID("_VisibleLightAttenuation");
+    static int _visibleLightSpotDirectionsID = Shader.PropertyToID("_visibleLightSpotDirections");
+
+    Vector4[] _VisibleLightColors;
+    Vector4[] _VisibleLightDirectionOrPosition;
+    Vector4[] _VisibleLightAttenuations = new Vector4[_maxVisibleLights];
+    Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
+
     //Constructor
-    public MyPipeline(MyPipelineAsset _InPipeLineAsset, Material _InShaderErrorMaterial, bool _InDynamicBatching, bool _InGPU_Instancing)
+    public MyPipeline(MyPipelineAsset _InPipeLineAsset, Material _InShaderErrorMaterial, bool _InDynamicBatching, bool _InGPU_Instancing, bool _InUseLinearLightIntencity, int _InMaximumVisibleDirectionalLights)
     {
         _PipeLineAsset = _InPipeLineAsset;
         if (_InDynamicBatching) _DrawFlags = DrawRendererFlags.EnableDynamicBatching;
         if (_InGPU_Instancing) _DrawFlags = DrawRendererFlags.EnableInstancing;
         if (_InShaderErrorMaterial) _ErrorMaterial = _InShaderErrorMaterial;
+        _maxVisibleLights = _InMaximumVisibleDirectionalLights;
+        _VisibleLightColors = new Vector4[_maxVisibleLights];
+        _VisibleLightDirectionOrPosition = new Vector4[_maxVisibleLights];
+        //Set Linear light intencity for our pipeline
+        GraphicsSettings.lightsUseLinearIntensity = _InUseLinearLightIntencity;
+
     }
 
     public override void Render(ScriptableRenderContext _renderContext, Camera[] _Cameras)
@@ -60,8 +79,19 @@ public class MyPipeline : RenderPipeline
             (_ClearFlags & CameraClearFlags.Color) != 0,
             _Camera.backgroundColor
         );
+
+        ConfigureLights();
+
         //FrameDebugger Sampling
         _CameraBuffer.BeginSample("Render Camera");
+
+        //Send Data to GPU CBUFFER's
+        _CameraBuffer.SetGlobalVectorArray(_VisibleLightColorID, _VisibleLightColors);
+        _CameraBuffer.SetGlobalVectorArray(_VisibleLightDirectionOrPositionID, _VisibleLightDirectionOrPosition);
+        _CameraBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
+        _CameraBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
+        _CameraBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
+
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
 
@@ -129,5 +159,73 @@ public class MyPipeline : RenderPipeline
         var _FilterSettings = new FilterRenderersSettings(true);
 
         _Contex.DrawRenderers(_Cull.visibleRenderers, ref _DrawSettings, _FilterSettings);
+    }
+
+    void ConfigureLights()
+    {
+        int i = 0;
+        for (; i < _Cull.visibleLights.Count; i++)
+        {
+            //Abort the loop when sending more than maximum supported lights
+            if (i == _maxVisibleLights)
+            {
+                break;
+            }
+
+            //Define visible lights at index
+            VisibleLight _light = _Cull.visibleLights[i];
+
+            //Set lights colors array
+            _VisibleLightColors[i] = _light.finalColor;
+
+            Vector4 _attenuation = Vector4.zero;
+            _attenuation.w = 1.0f;
+
+            //Negate directional light direction
+            if(_light.lightType == LightType.Directional)
+            { 
+                Vector4 v = _light.localToWorld.GetColumn(2);
+                v.x = -v.x;
+                v.y = -v.y;
+                v.z = -v.z;
+
+                //Set directional lights directions array
+                _VisibleLightDirectionOrPosition[i] = v;
+            }
+            else
+            {
+                _VisibleLightDirectionOrPosition[i] = _light.localToWorld.GetColumn(3);
+                _attenuation.x = 1.0f / Mathf.Max(_light.range * _light.range, 0.00001f);
+
+
+                
+                if (_light.lightType == LightType.Spot)
+                {
+                    //Negate spot light direction
+                    Vector4 v = _light.localToWorld.GetColumn(2);
+                    v.x = -v.x;
+                    v.y = -v.y;
+                    v.z = -v.z;
+
+                    //Set spot lights directions array
+                    _visibleLightSpotDirections[i] = v;
+
+                    //Angle Falloff calculations (A pice of mathf magic to make shit works)
+                    float outerRad = Mathf.Deg2Rad * 0.5f * _light.spotAngle;
+                    float outerCos = Mathf.Cos(outerRad);
+                    float outerTan = Mathf.Tan(outerRad);
+                    float innerCos = Mathf.Cos(Mathf.Atan((46.0f / 64.0f) * outerTan));
+                    float angleRange = Mathf.Max(innerCos - outerCos, 0.001f);
+                    _attenuation.z = 1f / angleRange;
+                    _attenuation.w = -outerCos * _attenuation.z;
+                }
+            }
+
+            _VisibleLightAttenuations[i] = _attenuation;
+        }
+        for (; i < _maxVisibleLights; i++)
+        {
+            _VisibleLightColors[i] = Color.clear;
+        }
     }
 }
