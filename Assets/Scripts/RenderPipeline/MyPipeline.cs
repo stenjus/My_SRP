@@ -9,6 +9,8 @@ public class MyPipeline : RenderPipeline
     DrawRendererFlags _DrawFlags;
     CommandBuffer _CameraBuffer = new CommandBuffer {name = "Render Camera"};
 
+    RenderTexture _rt;
+
     Material _ErrorMaterial;
     MyPipelineAsset _PipeLineAsset;
 
@@ -25,8 +27,18 @@ public class MyPipeline : RenderPipeline
     Vector4[] _VisibleLightAttenuations = new Vector4[_maxVisibleLights];
     Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
 
+    //Test Vars
+    Material _renderMaterial;
+    Mesh _RenderMesh;
+
     //Constructor
-    public MyPipeline(MyPipelineAsset _InPipeLineAsset, Material _InShaderErrorMaterial, bool _InDynamicBatching, bool _InGPU_Instancing, bool _InUseLinearLightIntencity)
+    public MyPipeline(  MyPipelineAsset _InPipeLineAsset, 
+                        Material _InShaderErrorMaterial, 
+                        bool _InDynamicBatching, 
+                        bool _InGPU_Instancing, 
+                        bool _InUseLinearLightIntencity,
+                        Mesh _InRenderMesh,
+                        Material _InRenderMaterial)
     {
         _PipeLineAsset = _InPipeLineAsset;
         if (_InDynamicBatching) _DrawFlags = DrawRendererFlags.EnableDynamicBatching;
@@ -36,6 +48,10 @@ public class MyPipeline : RenderPipeline
         _VisibleLightDirectionOrPosition = new Vector4[_maxVisibleLights];
         //Set Linear light intencity for our pipeline
         GraphicsSettings.lightsUseLinearIntensity = _InUseLinearLightIntencity;
+        
+        //test
+        _RenderMesh = _InRenderMesh;
+        _renderMaterial = _InRenderMaterial;
 
     }
 
@@ -71,7 +87,11 @@ public class MyPipeline : RenderPipeline
         _Context.SetupCameraProperties(_Camera);//SetUp Camera Matrix (transformation)
         CameraClearFlags _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
 
-        
+        RenderTexture.ReleaseTemporary(_rt);
+        _rt = RenderTexture.GetTemporary(1920, 1080, 24, RenderTextureFormat.ARGBHalf);
+        _renderMaterial.SetTexture("_MainTex", _rt);
+        _CameraBuffer.SetRenderTarget(_rt);
+
         _CameraBuffer.ClearRenderTarget
         (
             (_ClearFlags & CameraClearFlags.Depth) != 0,
@@ -90,6 +110,7 @@ public class MyPipeline : RenderPipeline
         _CameraBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
         _CameraBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
         _CameraBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
+
 
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
@@ -125,6 +146,8 @@ public class MyPipeline : RenderPipeline
             ref _DrawSettings,
             _FilterSettings
         );
+        _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+        _CameraBuffer.DrawMesh(_RenderMesh, Matrix4x4.identity, _renderMaterial);
 
         //Set Default Pipline camera and context to render
         DrawDefaultPipeline(_Context, _Camera);

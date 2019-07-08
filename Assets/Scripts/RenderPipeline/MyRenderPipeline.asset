@@ -17,3 +17,5 @@ MonoBehaviour:
   _InDynamicBatching: 0
   _GPUInstancing: 1
   _UseLinearLightIntencity: 1
+  _renderMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  _renderMaterial: {fileID: 2100000, guid: 2164dc4db157fee47b61f3431d82faed, type: 2}

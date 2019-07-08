@@ -80,9 +80,9 @@ float4 Lit_Pas_Fragment(VertexOutput i) : SV_TARGET
 		int _lightIndex = unity_4LightIndices0[Z];
 		DiffuseLight += DiffuseLightFunc(_lightIndex, i.normal, i.worldPos);
 	}
-	for (int Z = 4; Z < min(unity_LightIndicesOffsetAndCount.y, 8); Z++)
+	for (int W = 4; W < min(unity_LightIndicesOffsetAndCount.y, 8); W++)
 	{
-		int _lightIndex = unity_4LightIndices1[Z - 4];
+		int _lightIndex = unity_4LightIndices1[W - 4];
 		DiffuseLight += DiffuseLightFunc(_lightIndex, i.normal, i.worldPos);
 	}
 	return float4(DiffuseLight * albedo, 1);

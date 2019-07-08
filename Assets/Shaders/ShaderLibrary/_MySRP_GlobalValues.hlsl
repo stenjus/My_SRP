@@ -22,8 +22,8 @@ CBUFFER_START(_LightBuffer)
 	float4 _visibleLightSpotDirections[MAX_VISIBLE_LIGHTS];
 
 CBUFFER_END
-
-#define UNITY_MATRIX_M unity_ObjectToWorld;
+#define UNITY_MATRIX_M unity_ObjectToWorld
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
 
 #endif //_MYSRP_GLOBALVALUES_INCLUDED
