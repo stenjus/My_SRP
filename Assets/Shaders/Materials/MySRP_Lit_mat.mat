@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MySRP_Unlit_mat
-  m_Shader: {fileID: 4800000, guid: cf823ba2c956d204cabf57b56b482af9, type: 3}
+  m_Name: MySRP_Lit_mat
+  m_Shader: {fileID: 4800000, guid: 37de3496bbd1dbd4e97c4aaa62a1bcd2, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -73,5 +73,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 3.5648696, g: 3.5648696, b: 3.5648696, a: 1}
+    - _Color: {r: 1.3507392, g: 0.96969515, b: 2.4694903, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

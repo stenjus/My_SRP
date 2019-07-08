@@ -13,7 +13,7 @@ public class MyPipeline : RenderPipeline
     MyPipelineAsset _PipeLineAsset;
 
     //Lighting variable
-    static int _maxVisibleLights = 4;
+    static int _maxVisibleLights = 16;
     static int _VisibleLightColorID = Shader.PropertyToID("_VisibleLightColor");
     static int _VisibleLightDirectionOrPositionID = Shader.PropertyToID("_VisibleLightDirectionOrPosition");
     static int _maxVisibleLightsID = Shader.PropertyToID("_MaxVisibleLights");
@@ -26,13 +26,12 @@ public class MyPipeline : RenderPipeline
     Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
 
     //Constructor
-    public MyPipeline(MyPipelineAsset _InPipeLineAsset, Material _InShaderErrorMaterial, bool _InDynamicBatching, bool _InGPU_Instancing, bool _InUseLinearLightIntencity, int _InMaximumVisibleDirectionalLights)
+    public MyPipeline(MyPipelineAsset _InPipeLineAsset, Material _InShaderErrorMaterial, bool _InDynamicBatching, bool _InGPU_Instancing, bool _InUseLinearLightIntencity)
     {
         _PipeLineAsset = _InPipeLineAsset;
         if (_InDynamicBatching) _DrawFlags = DrawRendererFlags.EnableDynamicBatching;
         if (_InGPU_Instancing) _DrawFlags = DrawRendererFlags.EnableInstancing;
         if (_InShaderErrorMaterial) _ErrorMaterial = _InShaderErrorMaterial;
-        _maxVisibleLights = _InMaximumVisibleDirectionalLights;
         _VisibleLightColors = new Vector4[_maxVisibleLights];
         _VisibleLightDirectionOrPosition = new Vector4[_maxVisibleLights];
         //Set Linear light intencity for our pipeline
@@ -95,8 +94,10 @@ public class MyPipeline : RenderPipeline
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
 
-        var _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"));
-        _DrawSettings.flags = _DrawFlags;
+        var _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"))
+        {
+            flags = _DrawFlags, rendererConfiguration = RendererConfiguration.PerObjectLightIndices8
+        };
 
         //Opquare Filter and Render
         _DrawSettings.sorting.flags = SortFlags.CommonOpaque; //Set sorting flags for opquare render
@@ -163,8 +164,7 @@ public class MyPipeline : RenderPipeline
 
     void ConfigureLights()
     {
-        int i = 0;
-        for (; i < _Cull.visibleLights.Count; i++)
+        for (int i = 0; i < _Cull.visibleLights.Count; i++)
         {
             //Abort the loop when sending more than maximum supported lights
             if (i == _maxVisibleLights)
@@ -222,10 +222,6 @@ public class MyPipeline : RenderPipeline
             }
 
             _VisibleLightAttenuations[i] = _attenuation;
-        }
-        for (; i < _maxVisibleLights; i++)
-        {
-            _VisibleLightColors[i] = Color.clear;
         }
     }
 }

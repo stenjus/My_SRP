@@ -9,9 +9,11 @@ CBUFFER_END
 
 CBUFFER_START(UnityPerDraw)
 	float4x4 unity_ObjectToWorld;
+	float4 unity_LightIndicesOffsetAndCount;
+	float4 unity_4LightIndices0, unity_4LightIndices1;
 CBUFFER_END
 
-#define MAX_VISIBLE_LIGHTS 4
+#define MAX_VISIBLE_LIGHTS 16
 CBUFFER_START(_LightBuffer)
 	int _MaxVisibleLights = 4;
 	float4 _VisibleLightColor[MAX_VISIBLE_LIGHTS];
