@@ -7,9 +7,11 @@ public class MyPipeline : RenderPipeline
 {
     CullResults _Cull;
     DrawRendererFlags _DrawFlags;
-    CommandBuffer _CameraBuffer = new CommandBuffer {name = "Render Camera"};
 
-    RenderTexture _rt;
+    CommandBuffer _CameraBuffer     = new CommandBuffer {name = "Render Camera"};
+    CommandBuffer _BloomBuffer      = new CommandBuffer { name = "Bloom Buffer" };
+
+    RenderTexture _RenderTextureTarget;
 
     Material _ErrorMaterial;
     MyPipelineAsset _PipeLineAsset;
@@ -27,9 +29,14 @@ public class MyPipeline : RenderPipeline
     Vector4[] _VisibleLightAttenuations = new Vector4[_maxVisibleLights];
     Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
 
-    //Test Vars
+    //Render to mesh Vars
     Material _renderMaterial;
     Mesh _RenderMesh;
+
+    //Post Processing values
+    int _DownScaleValue;
+    int _lowResW;
+    int _lowResH;
 
     //Constructor
     public MyPipeline(  MyPipelineAsset _InPipeLineAsset, 
@@ -38,7 +45,8 @@ public class MyPipeline : RenderPipeline
                         bool _InGPU_Instancing, 
                         bool _InUseLinearLightIntencity,
                         Mesh _InRenderMesh,
-                        Material _InRenderMaterial)
+                        Material _InRenderMaterial,
+                        int _InDownScaleValue)
     {
         _PipeLineAsset = _InPipeLineAsset;
         if (_InDynamicBatching) _DrawFlags = DrawRendererFlags.EnableDynamicBatching;
@@ -46,12 +54,16 @@ public class MyPipeline : RenderPipeline
         if (_InShaderErrorMaterial) _ErrorMaterial = _InShaderErrorMaterial;
         _VisibleLightColors = new Vector4[_maxVisibleLights];
         _VisibleLightDirectionOrPosition = new Vector4[_maxVisibleLights];
+
         //Set Linear light intencity for our pipeline
         GraphicsSettings.lightsUseLinearIntensity = _InUseLinearLightIntencity;
         
-        //test
+        //Set variables for DrawMesh
         _RenderMesh = _InRenderMesh;
         _renderMaterial = _InRenderMaterial;
+
+        //Set post values
+        _DownScaleValue = _InDownScaleValue;
 
     }
 
@@ -79,7 +91,7 @@ public class MyPipeline : RenderPipeline
         { 
         ScriptableRenderContext.EmitWorldGeometryForSceneView(_Camera);
         }
-        #endif
+#endif
 
         CullResults.Cull(ref _CullingParams, _Context, ref _Cull);
 
@@ -87,10 +99,27 @@ public class MyPipeline : RenderPipeline
         _Context.SetupCameraProperties(_Camera);//SetUp Camera Matrix (transformation)
         CameraClearFlags _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
 
-        RenderTexture.ReleaseTemporary(_rt);
-        _rt = RenderTexture.GetTemporary(1920, 1080, 24, RenderTextureFormat.ARGBHalf);
-        _renderMaterial.SetTexture("_MainTex", _rt);
-        _CameraBuffer.SetRenderTarget(_rt);
+        //Set down scaled resolutuion
+        if (_DownScaleValue > 1)
+        {
+            _lowResW = _Camera.pixelWidth / _DownScaleValue;
+            _lowResH = _Camera.pixelHeight / _DownScaleValue;
+        }
+        else
+        {
+            _lowResW = _Camera.pixelWidth;
+            _lowResH = _Camera.pixelHeight;
+        }
+
+        RenderTexture.ReleaseTemporary(_RenderTextureTarget);
+        _RenderTextureTarget = RenderTexture.GetTemporary(_lowResW, _lowResH, 24, RenderTextureFormat.ARGBHalf);
+        _renderMaterial.SetTexture("_MainTex", _RenderTextureTarget);
+        _CameraBuffer.SetRenderTarget(_RenderTextureTarget);
+
+
+        //Invoke Bloom Post void
+        if(_PipeLineAsset._Bloom)
+        BloomPost(_Context, _lowResW, _lowResH);
 
         _CameraBuffer.ClearRenderTarget
         (
@@ -246,5 +275,21 @@ public class MyPipeline : RenderPipeline
 
             _VisibleLightAttenuations[i] = _attenuation;
         }
+    }
+
+    private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight)
+    {
+        /*
+        RenderTexture _downScaledRenderTex_S1;
+
+        _downScaledRenderTex_S1 = RenderTexture.GetTemporary(_ScreenWidth / 30, _ScreenHeight / 30, 16, RenderTextureFormat.ARGBHalf);
+        _renderMaterial.SetTexture("_MainTex", _downScaledRenderTex_S1);
+        _CameraBuffer.SetRenderTarget(_downScaledRenderTex_S1);
+        RenderTexture.ReleaseTemporary(_downScaledRenderTex_S1);
+
+        */
+
+        _Context.ExecuteCommandBuffer(_BloomBuffer);
+        _BloomBuffer.Clear();
     }
 }

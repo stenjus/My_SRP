@@ -42,9 +42,9 @@ VertexOutput Unlit_Pas_Vertex(VertexInput v)
 float4 Unlit_Pas_Fragment(VertexOutput i) : SV_TARGET
 {
 	UNITY_SETUP_INSTANCE_ID(i);
-float4 _instancedColor = UNITY_ACCESS_INSTANCED_PROP(PerInstance, _Color);
-float4 _col = tex2D(_MainTex, i.uv);
-	return _col;
+	float4 _instancedColor = UNITY_ACCESS_INSTANCED_PROP(PerInstance, _Color);
+
+	return _instancedColor;
 }
 
 #endif //_MYSRP_UNLIT_INCLUDED
