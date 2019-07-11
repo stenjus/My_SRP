@@ -2,7 +2,7 @@
 {
     Properties
     {
-		_MainTex("Render Texture", 2D) = "white" {}
+		_FrameBuffer("Render Texture", 2D) = "white" {}
 		[HDR]_VignColor("Vign Color", Color) = (0,0,0,0)
 		_Vign("vign", float) = 1
 		_Vign2("vign", float) = 1
@@ -21,7 +21,7 @@
 			#include "UnityCG.cginc"
 
 
-			sampler2D _MainTex;
+			sampler2D _FrameBuffer;
 		float _Vign, _Vign2, _FishEye;
 		float3 _VignColor;
 
@@ -62,7 +62,7 @@
 				half2 centerUv = i.uv * 2 - 1;
 				half circle = dot(centerUv, centerUv) * _Vign - _Vign2;
 				half3 vigneting = lerp(1, _VignColor, saturate(circle));
-				float4 _col = tex2D(_MainTex, i.uv);
+				float4 _col = tex2D(_FrameBuffer, i.uv);
 				_col.rgb *= vigneting;
 				return _col;
 			}

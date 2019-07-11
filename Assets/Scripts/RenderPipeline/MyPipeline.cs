@@ -111,10 +111,20 @@ public class MyPipeline : RenderPipeline
             _lowResH = _Camera.pixelHeight;
         }
 
-        RenderTexture.ReleaseTemporary(_RenderTextureTarget);
-        _RenderTextureTarget = RenderTexture.GetTemporary(_lowResW, _lowResH, 24, RenderTextureFormat.ARGBHalf);
-        _renderMaterial.SetTexture("_MainTex", _RenderTextureTarget);
-        _CameraBuffer.SetRenderTarget(_RenderTextureTarget);
+        //Set main RenderTexture for Frame
+
+        //Define Common properties
+        MyPipelineCommon.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MyPipelineCommon.RenderTexture.FrameBuffer);
+        MyPipelineCommon.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
+
+        _CameraBuffer.GetTemporaryRT(MyPipelineCommon.RenderTexture.FrameBuffer, MyPipelineCommon.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
+
+
+        //RenderTexture.ReleaseTemporary(_RenderTextureTarget);
+        //_RenderTextureTarget = RenderTexture.GetTemporary(_lowResW, _lowResH, 24, RenderTextureFormat.ARGBHalf);
+        //_renderMaterial.SetTexture("_MainTex", _RenderTextureTarget);
+        //
+        _CameraBuffer.SetRenderTarget(MyPipelineCommon.RenderTexture.FrameBufferID);
 
 
         //Invoke Bloom Post void
@@ -175,15 +185,23 @@ public class MyPipeline : RenderPipeline
             ref _DrawSettings,
             _FilterSettings
         );
-        _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-        _CameraBuffer.DrawMesh(_RenderMesh, Matrix4x4.identity, _renderMaterial);
 
         //Set Default Pipline camera and context to render
-        DrawDefaultPipeline(_Context, _Camera);
+        //DrawDefaultPipeline(_Context, _Camera);
+
+        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MyPipelineCommon.RenderTexture.FrameBuffer);
+        
+        _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+        _CameraBuffer.DrawMesh(_RenderMesh, Matrix4x4.identity, _renderMaterial);
+        _Context.ExecuteCommandBuffer(_CameraBuffer);
+        _CameraBuffer.Clear();
+
 
         _CameraBuffer.EndSample("Render Camera");
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
+
+
 
         _Context.Submit();
     }
