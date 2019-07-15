@@ -19,5 +19,5 @@ MonoBehaviour:
   _UseLinearLightIntencity: 1
   _RenderMesh: {fileID: 4300000, guid: aec430ebf7112ab4f93c1bdccedc6269, type: 2}
   _RenderMaterial: {fileID: 2100000, guid: 2164dc4db157fee47b61f3431d82faed, type: 2}
-  _DownScaleValue: 1
+  _DownScaleValue: 0
   _Bloom: 1

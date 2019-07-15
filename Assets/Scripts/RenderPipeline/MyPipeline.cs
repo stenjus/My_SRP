@@ -5,16 +5,25 @@ using Conditional = System.Diagnostics.ConditionalAttribute;
 
 public class MyPipeline : RenderPipeline
 {
+
+    //SRP Main Variables
     CullResults _Cull;
     DrawRendererFlags _DrawFlags;
+    ScriptableCullingParameters _CullingParams;
+    CameraClearFlags _ClearFlags;
+    DrawRendererSettings _DrawSettings;
+    FilterRenderersSettings _FilterSettings;
 
+    //Command Buffers
     CommandBuffer _CameraBuffer     = new CommandBuffer {name = "Render Camera"};
     CommandBuffer _BloomBuffer      = new CommandBuffer { name = "Bloom Buffer" };
+    CommandBuffer _LightingBuffer   = new CommandBuffer { name = "Lighting Buffer" };
 
-    RenderTexture _RenderTextureTarget;
-
+    //Preset Imported
     Material _ErrorMaterial;
     MyPipelineAsset _PipeLineAsset;
+    Material _RenderMaterial;
+    Mesh _RenderMesh;
 
     //Lighting variable
     static int _maxVisibleLights = 16;
@@ -29,42 +38,31 @@ public class MyPipeline : RenderPipeline
     Vector4[] _VisibleLightAttenuations = new Vector4[_maxVisibleLights];
     Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
 
-    //Render to mesh Vars
-    Material _renderMaterial;
-    Mesh _RenderMesh;
-
     //Post Processing values
-    int _DownScaleValue;
+    //SubRes Settings
     int _lowResW;
     int _lowResH;
+    //Bloom Settings
+    static int _BloomPasses = 6;
 
     //Constructor
     public MyPipeline(  MyPipelineAsset _InPipeLineAsset, 
                         Material _InShaderErrorMaterial, 
                         bool _InDynamicBatching, 
                         bool _InGPU_Instancing, 
-                        bool _InUseLinearLightIntencity,
-                        Mesh _InRenderMesh,
-                        Material _InRenderMaterial,
-                        int _InDownScaleValue)
+                        bool _InUseLinearLightIntencity)
     {
         _PipeLineAsset = _InPipeLineAsset;
         if (_InDynamicBatching) _DrawFlags = DrawRendererFlags.EnableDynamicBatching;
         if (_InGPU_Instancing) _DrawFlags = DrawRendererFlags.EnableInstancing;
         if (_InShaderErrorMaterial) _ErrorMaterial = _InShaderErrorMaterial;
+
+        //Lighting
         _VisibleLightColors = new Vector4[_maxVisibleLights];
         _VisibleLightDirectionOrPosition = new Vector4[_maxVisibleLights];
 
         //Set Linear light intencity for our pipeline
         GraphicsSettings.lightsUseLinearIntensity = _InUseLinearLightIntencity;
-        
-        //Set variables for DrawMesh
-        _RenderMesh = _InRenderMesh;
-        _renderMaterial = _InRenderMaterial;
-
-        //Set post values
-        _DownScaleValue = _InDownScaleValue;
-
     }
 
     public override void Render(ScriptableRenderContext _renderContext, Camera[] _Cameras)
@@ -78,32 +76,23 @@ public class MyPipeline : RenderPipeline
     void Render(ScriptableRenderContext _Context, Camera _Camera)
     {
         //Setup culling for current camera
-        ScriptableCullingParameters _CullingParams;
         CullResults.GetCullingParameters(_Camera, out _CullingParams);
-        if (!CullResults.GetCullingParameters(_Camera, out _CullingParams))
-        {
-            return;
-        }
-
-
-#if UNITY_EDITOR
-        if (_Camera.cameraType == CameraType.SceneView)
-        { 
-        ScriptableRenderContext.EmitWorldGeometryForSceneView(_Camera);
-        }
-#endif
-
+        if (!CullResults.GetCullingParameters(_Camera, out _CullingParams)) { return; }
         CullResults.Cull(ref _CullingParams, _Context, ref _Cull);
 
-        //Setup the camera, culling and buffer
-        _Context.SetupCameraProperties(_Camera);//SetUp Camera Matrix (transformation)
-        CameraClearFlags _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
+        //Render Unity UI in SceneView
+        #if UNITY_EDITOR
+        if (_Camera.cameraType == CameraType.SceneView){ ScriptableRenderContext.EmitWorldGeometryForSceneView(_Camera); }
+        #endif
+
+        _Context.SetupCameraProperties(_Camera); //SetUp Camera Matrix (transformation)
+        _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
 
         //Set down scaled resolutuion
-        if (_DownScaleValue > 1)
+        if (_PipeLineAsset._DownScaleValue > 1)
         {
-            _lowResW = _Camera.pixelWidth / _DownScaleValue;
-            _lowResH = _Camera.pixelHeight / _DownScaleValue;
+            _lowResW = _Camera.pixelWidth / _PipeLineAsset._DownScaleValue;
+            _lowResH = _Camera.pixelHeight / _PipeLineAsset._DownScaleValue;
         }
         else
         {
@@ -111,25 +100,17 @@ public class MyPipeline : RenderPipeline
             _lowResH = _Camera.pixelHeight;
         }
 
-        //Set main RenderTexture for Frame
-
-        //Define Common properties
+        //Define render target as Temporary render textur
         MyPipelineCommon.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MyPipelineCommon.RenderTexture.FrameBuffer);
         MyPipelineCommon.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
-
         _CameraBuffer.GetTemporaryRT(MyPipelineCommon.RenderTexture.FrameBuffer, MyPipelineCommon.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
-
-
-        //RenderTexture.ReleaseTemporary(_RenderTextureTarget);
-        //_RenderTextureTarget = RenderTexture.GetTemporary(_lowResW, _lowResH, 24, RenderTextureFormat.ARGBHalf);
-        //_renderMaterial.SetTexture("_MainTex", _RenderTextureTarget);
-        //
         _CameraBuffer.SetRenderTarget(MyPipelineCommon.RenderTexture.FrameBufferID);
+        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MyPipelineCommon.RenderTexture.FrameBufferID);
 
 
         //Invoke Bloom Post void
-        if(_PipeLineAsset._Bloom)
-        BloomPost(_Context, _lowResW, _lowResH);
+        if (_PipeLineAsset._Bloom)
+            BloomPost(_Context, _lowResW, _lowResH, MyPipelineCommon.RenderTexture.FrameBufferID);
 
         _CameraBuffer.ClearRenderTarget
         (
@@ -138,30 +119,33 @@ public class MyPipeline : RenderPipeline
             _Camera.backgroundColor
         );
 
-        ConfigureLights();
-
-        //FrameDebugger Sampling
-        _CameraBuffer.BeginSample("Render Camera");
-
-        //Send Data to GPU CBUFFER's
-        _CameraBuffer.SetGlobalVectorArray(_VisibleLightColorID, _VisibleLightColors);
-        _CameraBuffer.SetGlobalVectorArray(_VisibleLightDirectionOrPositionID, _VisibleLightDirectionOrPosition);
-        _CameraBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
-        _CameraBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
-        _CameraBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
-
-
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
 
-        var _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"))
+
+        //Lighting Commands ---
+        ConfigureLights();
+        //Send Data to GPU CBUFFER's
+        _LightingBuffer.SetGlobalVectorArray(_VisibleLightColorID, _VisibleLightColors);
+        _LightingBuffer.SetGlobalVectorArray(_VisibleLightDirectionOrPositionID, _VisibleLightDirectionOrPosition);
+        _LightingBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
+        _LightingBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
+        _LightingBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
+
+        _Context.ExecuteCommandBuffer(_LightingBuffer);
+        _LightingBuffer.Clear();
+        // ---
+
+        //FrameDebugger Sampling
+        _CameraBuffer.BeginSample("Render Camera");
+        _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"))
         {
             flags = _DrawFlags, rendererConfiguration = RendererConfiguration.PerObjectLightIndices8
         };
 
         //Opquare Filter and Render
         _DrawSettings.sorting.flags = SortFlags.CommonOpaque; //Set sorting flags for opquare render
-        var _FilterSettings = new FilterRenderersSettings(true)
+        _FilterSettings = new FilterRenderersSettings(true)
         {
             renderQueueRange = RenderQueueRange.opaque
         };
@@ -186,22 +170,14 @@ public class MyPipeline : RenderPipeline
             _FilterSettings
         );
 
-        //Set Default Pipline camera and context to render
-        //DrawDefaultPipeline(_Context, _Camera);
 
-        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MyPipelineCommon.RenderTexture.FrameBuffer);
-        
+
+
         _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-        _CameraBuffer.DrawMesh(_RenderMesh, Matrix4x4.identity, _renderMaterial);
+        _CameraBuffer.DrawMesh(_PipeLineAsset._RenderMesh, Matrix4x4.identity, _PipeLineAsset._RenderMaterial);
         _Context.ExecuteCommandBuffer(_CameraBuffer);
         _CameraBuffer.Clear();
-
-
         _CameraBuffer.EndSample("Render Camera");
-        _Context.ExecuteCommandBuffer(_CameraBuffer);
-        _CameraBuffer.Clear();
-
-
 
         _Context.Submit();
     }
@@ -295,18 +271,14 @@ public class MyPipeline : RenderPipeline
         }
     }
 
-    private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight)
+    private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight, RenderTargetIdentifier _FrameBuffer)
     {
-        /*
-        RenderTexture _downScaledRenderTex_S1;
-
-        _downScaledRenderTex_S1 = RenderTexture.GetTemporary(_ScreenWidth / 30, _ScreenHeight / 30, 16, RenderTextureFormat.ARGBHalf);
-        _renderMaterial.SetTexture("_MainTex", _downScaledRenderTex_S1);
-        _CameraBuffer.SetRenderTarget(_downScaledRenderTex_S1);
-        RenderTexture.ReleaseTemporary(_downScaledRenderTex_S1);
-
-        */
-
+        MyPipelineCommon.RenderTexture._BloomPassFrameBufferID = new RenderTargetIdentifier(MyPipelineCommon.RenderTexture._BloomPassFrameBuffer);
+        _BloomBuffer.GetTemporaryRT(MyPipelineCommon.RenderTexture._BloomPassFrameBuffer, MyPipelineCommon.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
+        for (int i = 0; i < _BloomPasses; i++)
+        {
+            
+        }
         _Context.ExecuteCommandBuffer(_BloomBuffer);
         _BloomBuffer.Clear();
     }

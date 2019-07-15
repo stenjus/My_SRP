@@ -35,7 +35,7 @@ VertexOutput Unlit_Pas_Vertex(VertexInput v)
 	UNITY_TRANSFER_INSTANCE_ID(v, o);
 	float4 wPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 1.0));
 	o.clipVertex = mul(unity_MatrixVP, wPos);
-	o.uv = v.uv;
+	o.uv.xy = v.uv.xy;
 	return o;
 }
 

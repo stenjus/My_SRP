@@ -2,7 +2,6 @@
 {
     Properties
     {
-		_FrameBuffer("Render Texture", 2D) = "white" {}
 		[HDR]_VignColor("Vign Color", Color) = (0,0,0,0)
 		_Vign("vign", float) = 1
 		_Vign2("vign", float) = 1
@@ -17,13 +16,15 @@
 			HLSLPROGRAM
 			#pragma vertex Blit_Pas_Vertex
 			#pragma fragment Blit_Pas_Fragment
-			//#include "/ShaderLibrary/_MySRP_GlobalValues.hlsl"
-			#include "UnityCG.cginc"
+			#include "/ShaderLibrary/_MySRP_GlobalValues.hlsl"
+			#include "/ShaderLibrary/_MySRP_BloomPass.hlsl"
+			
 
 
 			sampler2D _FrameBuffer;
-		float _Vign, _Vign2, _FishEye;
-		float3 _VignColor;
+	sampler2D _BloomPassFrameBuffer1;
+			float _Vign, _Vign2, _FishEye;
+			float3 _VignColor;
 
 			struct VertexInput
 			{
@@ -44,16 +45,16 @@
 				//Set renderMesh to clipSpace
 				o.clipVertex = v.vertex;
 				o.clipVertex.xy *= 2.0;
-				o.clipVertex.y *= _ProjectionParams.x; //Curently using Unity.cginc _Projectparams, but must be in own srp
+				o.clipVertex.y *= -1;
 				o.clipVertex.z += 0.5;
 
-				half2 centerUv = v.uv * 2 - 1;
+				half2 centerUv = v.uv.xy * 2.0f - 1.0f;
 				half circle = saturate(dot(centerUv, centerUv));
 				half fishEye = lerp(0, _FishEye, circle);
 				o.clipVertex.xy /= 1 - _FishEye ;
 				o.clipVertex.w += fishEye;
 
-				o.uv = v.uv;
+				o.uv.xy = v.uv.xy;
 				return o;
 			}
 
@@ -62,7 +63,8 @@
 				half2 centerUv = i.uv * 2 - 1;
 				half circle = dot(centerUv, centerUv) * _Vign - _Vign2;
 				half3 vigneting = lerp(1, _VignColor, saturate(circle));
-				float4 _col = tex2D(_FrameBuffer, i.uv);
+				float4 _col = tex2D(_BloomPassFrameBuffer1, i.uv);
+				_col = BloomPass(_col);
 				_col.rgb *= vigneting;
 				return _col;
 			}
