@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Conditional = System.Diagnostics.ConditionalAttribute;
 
-public class MyPipeline : RenderPipeline
+public class MobileBase_SRP : RenderPipeline
 {
 
     //SRP Main Variables
@@ -15,13 +15,14 @@ public class MyPipeline : RenderPipeline
     FilterRenderersSettings _FilterSettings;
 
     //Command Buffers
-    CommandBuffer _CameraBuffer     = new CommandBuffer {name = "Render Camera"};
-    CommandBuffer _BloomBuffer      = new CommandBuffer { name = "Bloom Buffer" };
-    CommandBuffer _LightingBuffer   = new CommandBuffer { name = "Lighting Buffer" };
+    CommandBuffer _CameraBuffer             = new CommandBuffer {name = "Render Camera"};
+    CommandBuffer _BloomBuffer              = new CommandBuffer { name = "Bloom Buffer" };
+    CommandBuffer _LightingBuffer           = new CommandBuffer { name = "Lighting Buffer" };
+    CommandBuffer _PostProcessingBuffer     = new CommandBuffer { name = "PostPorcessing Buffer" };
 
     //Preset Imported
+    MobileBase_SRP_Asset _PipeLineAsset;
     Material _ErrorMaterial;
-    MyPipelineAsset _PipeLineAsset;
     Material _RenderMaterial;
     Mesh _RenderMesh;
 
@@ -46,7 +47,7 @@ public class MyPipeline : RenderPipeline
     static int _BloomPasses = 6;
 
     //Constructor
-    public MyPipeline(  MyPipelineAsset _InPipeLineAsset, 
+    public MobileBase_SRP(MobileBase_SRP_Asset _InPipeLineAsset, 
                         Material _InShaderErrorMaterial, 
                         bool _InDynamicBatching, 
                         bool _InGPU_Instancing, 
@@ -63,6 +64,9 @@ public class MyPipeline : RenderPipeline
 
         //Set Linear light intencity for our pipeline
         GraphicsSettings.lightsUseLinearIntensity = _InUseLinearLightIntencity;
+
+        //Find PostProcess Controller in current open scene
+        
     }
 
     public override void Render(ScriptableRenderContext _renderContext, Camera[] _Cameras)
@@ -88,6 +92,24 @@ public class MyPipeline : RenderPipeline
         _Context.SetupCameraProperties(_Camera); //SetUp Camera Matrix (transformation)
         _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
 
+        //Set postProcessing values to the Camera Blit Shader
+        //
+        //Set global values and keywords for vignetting
+        if (_PipeLineAsset._useVignetting)
+        {
+
+            _PostProcessingBuffer.SetGlobalColor("_VignettingColor", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._VignettingColor);
+            _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Size", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Size);
+            _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Contrast", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Contrast);
+            _PostProcessingBuffer.EnableShaderKeyword("VIGNETTING_ON");
+        }
+        else
+        {
+            _PostProcessingBuffer.DisableShaderKeyword("VIGNETTING_ON");
+        }
+        _Context.ExecuteCommandBuffer(_PostProcessingBuffer);
+        _PostProcessingBuffer.Clear();
+
         //Set down scaled resolutuion
         if (_PipeLineAsset._DownScaleValue > 1)
         {
@@ -101,16 +123,12 @@ public class MyPipeline : RenderPipeline
         }
 
         //Define render target as Temporary render textur
-        MyPipelineCommon.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MyPipelineCommon.RenderTexture.FrameBuffer);
-        MyPipelineCommon.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
-        _CameraBuffer.GetTemporaryRT(MyPipelineCommon.RenderTexture.FrameBuffer, MyPipelineCommon.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
-        _CameraBuffer.SetRenderTarget(MyPipelineCommon.RenderTexture.FrameBufferID);
-        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MyPipelineCommon.RenderTexture.FrameBufferID);
+        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
+        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
+        _CameraBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
+        _CameraBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
+        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
 
-
-        //Invoke Bloom Post void
-        if (_PipeLineAsset._Bloom)
-            BloomPost(_Context, _lowResW, _lowResH, MyPipelineCommon.RenderTexture.FrameBufferID);
 
         _CameraBuffer.ClearRenderTarget
         (
@@ -170,8 +188,12 @@ public class MyPipeline : RenderPipeline
             _FilterSettings
         );
 
-
-
+        /* Invoke Bloom Post void --------- Need to more know bout it.
+        if (_PipeLineAsset._Bloom)
+        {
+            BloomPost(_Context, _lowResW, _lowResH, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
+        }
+        */
 
         _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
         _CameraBuffer.DrawMesh(_PipeLineAsset._RenderMesh, Matrix4x4.identity, _PipeLineAsset._RenderMaterial);
@@ -273,12 +295,15 @@ public class MyPipeline : RenderPipeline
 
     private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight, RenderTargetIdentifier _FrameBuffer)
     {
-        MyPipelineCommon.RenderTexture._BloomPassFrameBufferID = new RenderTargetIdentifier(MyPipelineCommon.RenderTexture._BloomPassFrameBuffer);
-        _BloomBuffer.GetTemporaryRT(MyPipelineCommon.RenderTexture._BloomPassFrameBuffer, MyPipelineCommon.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
+        MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID = new RenderTargetIdentifier(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer);
+        _BloomBuffer.BeginSample("Bloom Buffer");
         for (int i = 0; i < _BloomPasses; i++)
         {
-            
+            _BloomBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer, _ScreenWidth >> i, _ScreenHeight >> i, 16, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+            _BloomBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID);
+            _BloomBuffer.SetGlobalTexture(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer, MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID);
         }
+        _BloomBuffer.EndSample("Bloom Buffer");
         _Context.ExecuteCommandBuffer(_BloomBuffer);
         _BloomBuffer.Clear();
     }

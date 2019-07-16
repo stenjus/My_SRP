@@ -2,9 +2,6 @@
 {
     Properties
     {
-		[HDR]_VignColor("Vign Color", Color) = (0,0,0,0)
-		_Vign("vign", float) = 1
-		_Vign2("vign", float) = 1
 		_FishEye("FishEye", Range(0, 1)) = 0
     }
     SubShader
@@ -16,15 +13,23 @@
 			HLSLPROGRAM
 			#pragma vertex Blit_Pas_Vertex
 			#pragma fragment Blit_Pas_Fragment
+			#pragma multi_compile _ BLOOM_ON
+			#pragma multi_compile _ VIGNETTING_ON
+			#pragma multi_compile _ FISHEYE_ON
 			#include "/ShaderLibrary/_MySRP_GlobalValues.hlsl"
 			#include "/ShaderLibrary/_MySRP_BloomPass.hlsl"
 			
 
 
 			sampler2D _FrameBuffer;
-	sampler2D _BloomPassFrameBuffer1;
 			float _Vign, _Vign2, _FishEye;
 			float3 _VignColor;
+			
+			#if VIGNETTING_ON
+			float3	_VignettingColor;
+			float	_Vignetting_Size;
+			float	_Vignetting_Contrast;
+			#endif
 
 			struct VertexInput
 			{
@@ -60,12 +65,24 @@
 
 			float4 Blit_Pas_Fragment(VertexOutput i) : SV_TARGET
 			{
-				half2 centerUv = i.uv * 2 - 1;
-				half circle = dot(centerUv, centerUv) * _Vign - _Vign2;
-				half3 vigneting = lerp(1, _VignColor, saturate(circle));
-				float4 _col = tex2D(_BloomPassFrameBuffer1, i.uv);
+				
+				
+				
+				float4 _col = tex2D(_FrameBuffer, i.uv);
+
+				//Unactive Bloom pass
+				#if BLOOM_ON
 				_col = BloomPass(_col);
+				#endif
+				
+				//Vignetting Pass
+				#if VIGNETTING_ON
+				half2 centerUv = i.uv * 2 - 1;
+				half circle = dot(centerUv, centerUv) * _Vignetting_Size - _Vignetting_Contrast;
+				half3 vigneting = lerp(1, _VignettingColor, saturate(circle));
 				_col.rgb *= vigneting;
+				#endif
+
 				return _col;
 			}
 			ENDHLSL

@@ -2,7 +2,7 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-public class MyPipelineCommon
+public class MobileBase_SRP_CommonValues
 {
     public class RenderTexture
     {

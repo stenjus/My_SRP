@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-[CreateAssetMenu(menuName = "Rendering/My Pipeline")]
-public class MyPipelineAsset : RenderPipelineAsset
+[CreateAssetMenu(menuName = "Presets/Mobile Base SRP Preset")]
+public class MobileBase_SRP_Asset : RenderPipelineAsset
 {
     public Material _ShaderErrorMaterial;
     public bool _InDynamicBatching;
@@ -13,13 +13,19 @@ public class MyPipelineAsset : RenderPipelineAsset
     public Mesh _RenderMesh;
     public Material _RenderMaterial;
 
+    //Post Processing bools
+    public bool _useBloom = false;
+    public bool _useFishEye = true;
+    public bool _useVignetting = true;
+
     [Range(0, 10)] public int _DownScaleValue = 1;
+
+    public MobileBase_SRP_PostProcess_Controller _MobileBase_SRP_PostProcess_Controller;
 
     public bool _Bloom;
 
     protected override IRenderPipeline InternalCreatePipeline()
     {
-        _InDynamicBatching = !_GPUInstancing;
-        return new MyPipeline(this, _ShaderErrorMaterial, _InDynamicBatching, _GPUInstancing, _UseLinearLightIntencity);
+        return new MobileBase_SRP(this, _ShaderErrorMaterial, _InDynamicBatching, _GPUInstancing, _UseLinearLightIntencity);
     }
 }
