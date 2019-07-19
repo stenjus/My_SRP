@@ -31,6 +31,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     SerializedProperty _useFishEye;
     SerializedProperty _useVignetting;
     SerializedProperty _useLUT;
+    SerializedProperty _DualFiltering;
 
     //Enums
     LightColorSpace _lightColorSpaceEnums;
@@ -58,6 +59,8 @@ public class MobileBase_SRP_AssetEditor : Editor
     GUIContent _UseLUTContent = new GUIContent("Use LUT Grading:");
     GUIContent _PostGlobalTogglesLableContent = new GUIContent("Global post toggles:");
     GUIContent _SubResLableContent = new GUIContent("Subresolution:");
+    GUIContent _BlurFiltering = new GUIContent("Blur Filtering:");
+    GUIContent _DualMaterialContent = new GUIContent("Dual Filtering Matrerial:");
 
     public override void OnInspectorGUI()
     {
@@ -168,6 +171,12 @@ public class MobileBase_SRP_AssetEditor : Editor
                 EditorGUILayout.IntSlider(_DownScaleValue, 1, 10, _ResolutionDownscaleContent);
             }
             else _DownScaleValue.intValue = 1;
+
+            CustomUI.GuiLineSeparator(1);
+
+            EditorGUILayout.LabelField(_BlurFiltering, EditorStyles.boldLabel);
+            _DualFiltering = serializedObject.FindProperty("_DualFiltering");
+            EditorGUILayout.ObjectField(_DualFiltering, _DualMaterialContent);
             serializedObject.ApplyModifiedProperties();
         }
         //CustomUI.GuiLineSeparator(10);

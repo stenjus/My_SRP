@@ -18,12 +18,11 @@ public class MobileBase_SRP_Asset : RenderPipelineAsset
     public bool _useFishEye = true;
     public bool _useVignetting = true;
     public bool _useLUT = true;
+    public Material _DualFiltering;
 
     [Range(0, 10)] public int _DownScaleValue = 1;
 
     public MobileBase_SRP_PostProcess_Controller _MobileBase_SRP_PostProcess_Controller;
-
-    public bool _Bloom;
 
     protected override IRenderPipeline InternalCreatePipeline()
     {

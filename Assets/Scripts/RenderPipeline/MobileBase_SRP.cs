@@ -43,8 +43,7 @@ public class MobileBase_SRP : RenderPipeline
     //SubRes Settings
     int _lowResW;
     int _lowResH;
-    //Bloom Settings
-    static int _BloomPasses = 6;
+
 
     //Constructor
     public MobileBase_SRP(MobileBase_SRP_Asset _InPipeLineAsset, 
@@ -77,6 +76,7 @@ public class MobileBase_SRP : RenderPipeline
             Render(_renderContext, _Camera);
         }
     }
+
     void Render(ScriptableRenderContext _Context, Camera _Camera)
     {
         //Setup culling for current camera
@@ -92,6 +92,128 @@ public class MobileBase_SRP : RenderPipeline
         _Context.SetupCameraProperties(_Camera); //SetUp Camera Matrix (transformation)
         _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
 
+        //Invoke SetPostprocessingValues function
+        SetPostprocessingValues(_Context);
+
+        //Set down scaled resolutuion
+        SetDownScaledResolution(_Camera);
+
+        //Define render target as Temporary render texture
+        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
+        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
+        _CameraBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
+        _CameraBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
+        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
+        _CameraBuffer.ReleaseTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
+
+
+        _CameraBuffer.ClearRenderTarget
+        (
+            (_ClearFlags & CameraClearFlags.Depth) != 0,
+            (_ClearFlags & CameraClearFlags.Color) != 0,
+            _Camera.backgroundColor
+        );
+
+        _Context.ExecuteCommandBuffer(_CameraBuffer);
+        _CameraBuffer.Clear();
+
+        //Invoke Lighting function
+        ConfigureLights(_Context);
+
+        //FrameDebugger Sampling
+        _CameraBuffer.BeginSample("Render Camera Buffer");
+        _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"))
+        {
+            flags = _DrawFlags, rendererConfiguration = RendererConfiguration.PerObjectLightIndices8
+        };
+
+        //Opquare Filter and Render
+        _DrawSettings.sorting.flags = SortFlags.CommonOpaque; //Set sorting flags for opquare render
+        _FilterSettings = new FilterRenderersSettings(true)
+        {
+            renderQueueRange = RenderQueueRange.opaque
+        };
+        _Context.DrawRenderers
+        (
+            _Cull.visibleRenderers,
+            ref _DrawSettings,
+            _FilterSettings
+        );
+
+        //SkyBox Rendering before Transparent
+        _Context.DrawSkybox(_Camera);
+
+        //Transparent Filter and Render
+        _DrawSettings.sorting.flags = SortFlags.CommonTransparent; //Set sorting flags for transparent render
+        _FilterSettings.renderQueueRange = RenderQueueRange.transparent;
+
+        _Context.DrawRenderers
+        (
+            _Cull.visibleRenderers,
+            ref _DrawSettings,
+            _FilterSettings
+        );
+
+        //Invoke Bloom Post void
+        if (_PipeLineAsset._useBloom)
+        {
+            BloomPost(_Context, _lowResW, _lowResH);
+        }
+        
+
+        _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+        _CameraBuffer.DrawMesh(_PipeLineAsset._RenderMesh, Matrix4x4.identity, _PipeLineAsset._RenderMaterial);
+        
+        _CameraBuffer.EndSample("Render Camera Buffer");
+
+        _Context.ExecuteCommandBuffer(_CameraBuffer);
+        _CameraBuffer.Clear();
+
+        _Context.Submit();
+    }
+
+    //Default Unity Pipeline used for rendering Unity included shader iside Editor or in Development builds
+    [Conditional ("UNITY_EDITOR"), Conditional ("DEVELOPMENT_BUILD")]
+    void DrawDefaultPipeline(ScriptableRenderContext _Contex, Camera _Camera)
+    {
+        if (_ErrorMaterial == null)
+        {
+            Debug.Log("Shader Error Material not assigned");
+            Shader _ErrorShader = Shader.Find("Hidden/InternalErrorShader");
+            _ErrorMaterial = new Material(_ErrorShader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+        }
+
+        var _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("ForwardBase"));
+        _DrawSettings.SetShaderPassName(1, new ShaderPassName("PrepassBase"));
+        _DrawSettings.SetShaderPassName(2, new ShaderPassName("Always"));
+        _DrawSettings.SetShaderPassName(3, new ShaderPassName("Vertex"));
+        _DrawSettings.SetShaderPassName(4, new ShaderPassName("VertexLMRGBM"));
+        _DrawSettings.SetShaderPassName(5, new ShaderPassName("VertexLM"));
+        _DrawSettings.SetOverrideMaterial(_ErrorMaterial, 0);
+        var _FilterSettings = new FilterRenderersSettings(true);
+
+        _Contex.DrawRenderers(_Cull.visibleRenderers, ref _DrawSettings, _FilterSettings);
+    }
+
+    void SetDownScaledResolution(Camera _Camera)
+    {
+        if (_PipeLineAsset._DownScaleValue > 1)
+        {
+            _lowResW = _Camera.pixelWidth / _PipeLineAsset._DownScaleValue;
+            _lowResH = _Camera.pixelHeight / _PipeLineAsset._DownScaleValue;
+        }
+        else
+        {
+            _lowResW = _Camera.pixelWidth;
+            _lowResH = _Camera.pixelHeight;
+        }
+    }
+
+    void SetPostprocessingValues(ScriptableRenderContext _Context)
+    {
         //Set postProcessing values to the Camera Blit Shader
         //
         //Set global values and keywords for vignetting
@@ -164,128 +286,9 @@ public class MobileBase_SRP : RenderPipeline
 
         _Context.ExecuteCommandBuffer(_PostProcessingBuffer);
         _PostProcessingBuffer.Clear();
-
-        //Set down scaled resolutuion
-        if (_PipeLineAsset._DownScaleValue > 1)
-        {
-            _lowResW = _Camera.pixelWidth / _PipeLineAsset._DownScaleValue;
-            _lowResH = _Camera.pixelHeight / _PipeLineAsset._DownScaleValue;
-        }
-        else
-        {
-            _lowResW = _Camera.pixelWidth;
-            _lowResH = _Camera.pixelHeight;
-        }
-
-        //Define render target as Temporary render textur
-        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID = new RenderTargetIdentifier(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
-        MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(_lowResW, _lowResH, RenderTextureFormat.ARGBHalf, 24);
-        _CameraBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
-        _CameraBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
-        _CameraBuffer.SetGlobalTexture("_FrameBuffer", MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
-
-
-        _CameraBuffer.ClearRenderTarget
-        (
-            (_ClearFlags & CameraClearFlags.Depth) != 0,
-            (_ClearFlags & CameraClearFlags.Color) != 0,
-            _Camera.backgroundColor
-        );
-
-        _Context.ExecuteCommandBuffer(_CameraBuffer);
-        _CameraBuffer.Clear();
-
-
-        //Lighting Commands ---
-        ConfigureLights();
-        //Send Data to GPU CBUFFER's
-        _LightingBuffer.SetGlobalVectorArray(_VisibleLightColorID, _VisibleLightColors);
-        _LightingBuffer.SetGlobalVectorArray(_VisibleLightDirectionOrPositionID, _VisibleLightDirectionOrPosition);
-        _LightingBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
-        _LightingBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
-        _LightingBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
-
-        _Context.ExecuteCommandBuffer(_LightingBuffer);
-        _LightingBuffer.Clear();
-        // ---
-
-        //FrameDebugger Sampling
-        _CameraBuffer.BeginSample("Render Camera");
-        _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("SRPDefaultUnlit"))
-        {
-            flags = _DrawFlags, rendererConfiguration = RendererConfiguration.PerObjectLightIndices8
-        };
-
-        //Opquare Filter and Render
-        _DrawSettings.sorting.flags = SortFlags.CommonOpaque; //Set sorting flags for opquare render
-        _FilterSettings = new FilterRenderersSettings(true)
-        {
-            renderQueueRange = RenderQueueRange.opaque
-        };
-        _Context.DrawRenderers
-        (
-            _Cull.visibleRenderers,
-            ref _DrawSettings,
-            _FilterSettings
-        );
-
-        //SkyBox Rendering before Transparent
-        _Context.DrawSkybox(_Camera);
-
-        //Transparent Filter and Render
-        _DrawSettings.sorting.flags = SortFlags.CommonTransparent; //Set sorting flags for transparent render
-        _FilterSettings.renderQueueRange = RenderQueueRange.transparent;
-
-        _Context.DrawRenderers
-        (
-            _Cull.visibleRenderers,
-            ref _DrawSettings,
-            _FilterSettings
-        );
-
-        /* Invoke Bloom Post void --------- Need to more know bout it.
-        if (_PipeLineAsset._Bloom)
-        {
-            BloomPost(_Context, _lowResW, _lowResH, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
-        }
-        */
-
-        _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-        _CameraBuffer.DrawMesh(_PipeLineAsset._RenderMesh, Matrix4x4.identity, _PipeLineAsset._RenderMaterial);
-        _Context.ExecuteCommandBuffer(_CameraBuffer);
-        _CameraBuffer.Clear();
-        _CameraBuffer.EndSample("Render Camera");
-
-        _Context.Submit();
     }
 
-    //Default Unity Pipeline used for rendering Unity included shader iside Editor or in Development builds
-    [Conditional ("UNITY_EDITOR"), Conditional ("DEVELOPMENT_BUILD")]
-    void DrawDefaultPipeline(ScriptableRenderContext _Contex, Camera _Camera)
-    {
-        if (_ErrorMaterial == null)
-        {
-            Debug.Log("Shader Error Material not assigned");
-            Shader _ErrorShader = Shader.Find("Hidden/InternalErrorShader");
-            _ErrorMaterial = new Material(_ErrorShader)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-        }
-
-        var _DrawSettings = new DrawRendererSettings(_Camera, new ShaderPassName("ForwardBase"));
-        _DrawSettings.SetShaderPassName(1, new ShaderPassName("PrepassBase"));
-        _DrawSettings.SetShaderPassName(2, new ShaderPassName("Always"));
-        _DrawSettings.SetShaderPassName(3, new ShaderPassName("Vertex"));
-        _DrawSettings.SetShaderPassName(4, new ShaderPassName("VertexLMRGBM"));
-        _DrawSettings.SetShaderPassName(5, new ShaderPassName("VertexLM"));
-        _DrawSettings.SetOverrideMaterial(_ErrorMaterial, 0);
-        var _FilterSettings = new FilterRenderersSettings(true);
-
-        _Contex.DrawRenderers(_Cull.visibleRenderers, ref _DrawSettings, _FilterSettings);
-    }
-
-    void ConfigureLights()
+    void ConfigureLights(ScriptableRenderContext _Context)
     {
         for (int i = 0; i < _Cull.visibleLights.Count; i++)
         {
@@ -346,19 +349,26 @@ public class MobileBase_SRP : RenderPipeline
 
             _VisibleLightAttenuations[i] = _attenuation;
         }
+
+        //Send Data to GPU CBUFFER's
+        _LightingBuffer.SetGlobalVectorArray(_VisibleLightColorID, _VisibleLightColors);
+        _LightingBuffer.SetGlobalVectorArray(_VisibleLightDirectionOrPositionID, _VisibleLightDirectionOrPosition);
+        _LightingBuffer.SetGlobalInt(_maxVisibleLightsID, _maxVisibleLights);
+        _LightingBuffer.SetGlobalVectorArray(_visibleLightAttenuationID, _VisibleLightAttenuations);
+        _LightingBuffer.SetGlobalVectorArray(_visibleLightSpotDirectionsID, _visibleLightSpotDirections);
+
+        _Context.ExecuteCommandBuffer(_LightingBuffer);
+        _LightingBuffer.Clear();
     }
 
-    private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight, RenderTargetIdentifier _FrameBuffer)
+    private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight)
     {
-        MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID = new RenderTargetIdentifier(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer);
-        _BloomBuffer.BeginSample("Bloom Buffer");
-        for (int i = 0; i < _BloomPasses; i++)
-        {
-            _BloomBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer, _ScreenWidth >> i, _ScreenHeight >> i, 16, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
-            _BloomBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID);
-            _BloomBuffer.SetGlobalTexture(MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBuffer, MobileBase_SRP_CommonValues.RenderTexture._BloomPassFrameBufferID);
-        }
-        _BloomBuffer.EndSample("Bloom Buffer");
+        int _DualFilterTex = Shader.PropertyToID("_DualFilterTex");
+        int _GrabScreenID = Shader.PropertyToID("_GrabScreen");
+
+        //_BloomBuffer.GetTemporaryRT(_GrabScreenID, _ScreenWidth, _ScreenHeight, 16, FilterMode.Bilinear);
+        //_BloomBuffer.SetGlobalTexture(_DualFilterTex, _GrabScreenID);
+        
         _Context.ExecuteCommandBuffer(_BloomBuffer);
         _BloomBuffer.Clear();
     }

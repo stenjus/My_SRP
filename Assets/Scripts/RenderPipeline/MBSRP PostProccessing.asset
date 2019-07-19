@@ -19,6 +19,6 @@ MonoBehaviour:
   _USE_LUTGrading: 1
   _LUT_Tex: {fileID: 2800000, guid: 2bc83875a7a0ca741a49d96548f73a97, type: 3}
   _LUT_Power: 0.506
-  _USE_FishEye_Fragment: 1
-  _USE_FishEye_Vertex: 0
+  _USE_FishEye_Fragment: 0
+  _USE_FishEye_Vertex: 1
   _FishEye_Power: 0.1

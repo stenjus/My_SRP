@@ -23,6 +23,6 @@ MonoBehaviour:
   _useFishEye: 1
   _useVignetting: 1
   _useLUT: 1
+  _DualFiltering: {fileID: 2100000, guid: 4ddfa3b49fe4a344c99d725a264edf87, type: 2}
   _DownScaleValue: 1
   _MobileBase_SRP_PostProcess_Controller: {fileID: 0}
-  _Bloom: 1

@@ -35,7 +35,7 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     bool _VignettingFoldout = true;
     bool _LUTFoldout = true;
     bool _FishEyeFoldout = true;
-    bool _BloomFoldout = true;
+    //bool _BloomFoldout = true;
 
     //GUI Content vars
     GUIContent _HeaderContent;
