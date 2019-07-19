@@ -104,7 +104,6 @@ public class MobileBase_SRP : RenderPipeline
         _CameraBuffer.GetTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer, MobileBase_SRP_CommonValues.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
         _CameraBuffer.SetRenderTarget(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
         _CameraBuffer.SetGlobalTexture("_FrameBuffer", MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID);
-        _CameraBuffer.ReleaseTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
 
 
         _CameraBuffer.ClearRenderTarget
@@ -155,11 +154,12 @@ public class MobileBase_SRP : RenderPipeline
         );
 
         //Invoke Bloom Post void
-        if (_PipeLineAsset._useBloom)
+        if (_PipeLineAsset._useBloom && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Bloom)
         {
             BloomPost(_Context, _lowResW, _lowResH);
         }
-        
+
+        _CameraBuffer.ReleaseTemporaryRT(MobileBase_SRP_CommonValues.RenderTexture.FrameBuffer);
 
         _CameraBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
         _CameraBuffer.DrawMesh(_PipeLineAsset._RenderMesh, Matrix4x4.identity, _PipeLineAsset._RenderMaterial);
@@ -282,6 +282,17 @@ public class MobileBase_SRP : RenderPipeline
             _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_FRAGMENT");
             _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_VERTEX");
         }
+        //
+        //Set global values and keywords for Bloom
+        if (_PipeLineAsset._useBloom && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Bloom)
+        {
+            _PostProcessingBuffer.SetGlobalFloat("_BloomIntencity", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._BloomIntencity);
+            _PostProcessingBuffer.EnableShaderKeyword("BLOOM_ON");
+        }
+        else
+        {
+            _PostProcessingBuffer.DisableShaderKeyword("BLOOM_ON");
+        }
 
 
         _Context.ExecuteCommandBuffer(_PostProcessingBuffer);
@@ -363,12 +374,58 @@ public class MobileBase_SRP : RenderPipeline
 
     private void BloomPost(ScriptableRenderContext _Context, int _ScreenWidth, int _ScreenHeight)
     {
+        Material DualFilterMat = _PipeLineAsset._DualFiltering;
         int _DualFilterTex = Shader.PropertyToID("_DualFilterTex");
-        int _GrabScreenID = Shader.PropertyToID("_GrabScreen");
+        int _BlurOffsetDown = Shader.PropertyToID("_BlurOffsetDown");
+        int _BlurOffsetUp = Shader.PropertyToID("_BlurOffsetUp");
+        int passes = _PipeLineAsset._BluumPasses;
+        int[] _DownID = new int[passes];
+        int[] _UpID = new int[passes];
 
-        //_BloomBuffer.GetTemporaryRT(_GrabScreenID, _ScreenWidth, _ScreenHeight, 16, FilterMode.Bilinear);
-        //_BloomBuffer.SetGlobalTexture(_DualFilterTex, _GrabScreenID);
+        //Set Offset to the shader
+        _BloomBuffer.SetGlobalFloat(_BlurOffsetDown, _PipeLineAsset._BlurOffsetDown);
+        _BloomBuffer.SetGlobalFloat(_BlurOffsetUp, _PipeLineAsset._BlurOffsetUp);
+
+        //IDs Loop
+        for (int i = 0; i < passes; i++)
+        {
+            _DownID[i] = Shader.PropertyToID("_DownID" + i);
+            _UpID[i] = Shader.PropertyToID("_UpID" + i);
+        }
+
+        //DownScale Pass
+        for (int i = 1; i < passes; i++)
+        {
+            _BloomBuffer.GetTemporaryRT(_DownID[i], _ScreenWidth >> i, _ScreenHeight >> i, 0, FilterMode.Bilinear);
+            if (i == 1)
+            {
+                _BloomBuffer.Blit(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID, _DownID[i], DualFilterMat, 0);
+            }
+            else _BloomBuffer.Blit(_DownID[i -1], _DownID[i], DualFilterMat, 0);
+        }
+
+        for (int i = passes - 1; i > 0; i--)
+        {
+            _BloomBuffer.GetTemporaryRT(_UpID[i - 1], _ScreenWidth >> i, _ScreenHeight >> i, 0, FilterMode.Bilinear);
+            if (i == passes - 1)
+            {
+                _BloomBuffer.Blit(_DownID[i], _UpID[i], DualFilterMat, 1);
+            }
+            else _BloomBuffer.Blit(_UpID[i], _UpID[i - 1], DualFilterMat, 1);
+        }
+
+        //CleanUp Chain
+        for (int i = 0; i < passes; i++)
+        {
+            _BloomBuffer.ReleaseTemporaryRT(_DownID[i]);
+        }
+        for (int i = passes - 1; i > 0; i--)
+        {
+            _BloomBuffer.ReleaseTemporaryRT(_UpID[i]);
+        }
         
+        _BloomBuffer.SetGlobalTexture("_BloomResult", _UpID[0]);
+
         _Context.ExecuteCommandBuffer(_BloomBuffer);
         _BloomBuffer.Clear();
     }

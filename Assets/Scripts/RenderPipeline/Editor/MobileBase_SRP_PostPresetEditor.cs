@@ -25,6 +25,9 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     SerializedProperty _USE_FishEye_Vertex;
     SerializedProperty _FishEye_Power;
 
+    SerializedProperty _USE_Bloom;
+    SerializedProperty _BloomIntencity;
+
     //Additional Bools
     bool _USE_FishEye = true;
 
@@ -35,7 +38,7 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     bool _VignettingFoldout = true;
     bool _LUTFoldout = true;
     bool _FishEyeFoldout = true;
-    //bool _BloomFoldout = true;
+    bool _BloomFoldout = true;
 
     //GUI Content vars
     GUIContent _HeaderContent;
@@ -48,6 +51,8 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     GUIContent _LUTPowerContent = new GUIContent("LUT Contribution:");
     GUIContent _USE_FishEyeContent = new GUIContent("Use FishEye:");
     GUIContent _FishEyePowerContent = new GUIContent("FishEye Power:");
+    GUIContent _USE_BloomContent = new GUIContent("Use Bloom:");
+    GUIContent _BloomIntencityContent = new GUIContent("Bloom Intencity:");
 
     public override void OnInspectorGUI()
     {
@@ -121,6 +126,20 @@ public class MobileBase_SRP_PostPresetEditor : Editor
             serializedObject.ApplyModifiedProperties();
         }
 
+        //Bloom Foldout
+        CustomUI.GuiLineSeparator(2);
+        _BloomFoldout = CustomUI.FoldOut("Bloom", _BloomFoldout);
+        EditorGUILayout.Separator();
+        if (_BloomFoldout)
+        {
+            _USE_Bloom = serializedObject.FindProperty("_USE_Bloom");
+            _BloomIntencity = serializedObject.FindProperty("_BloomIntencity");
+
+            _USE_Bloom.boolValue = EditorGUILayout.Toggle(_USE_BloomContent, _USE_Bloom.boolValue);
+            EditorGUILayout.Slider(_BloomIntencity, 0.0f, 5.0f, _BloomIntencityContent);
+            serializedObject.ApplyModifiedProperties();
+        }
+            
         //Usage Tip
         EditorGUILayout.Separator();
         EditorGUILayout.HelpBox("To use this Preset in your scene, please add 'MSRP PostProcess Controller' to any object on the scene and assign this preset into it", MessageType.None);

@@ -38,6 +38,11 @@
 			float	_Vignetting_Contrast;
 			#endif
 
+			#if BLOOM_ON
+			sampler2D _BloomResult;
+			float _BloomIntencity;
+			#endif
+
 			struct VertexInput
 			{
 				float4 vertex		: POSITION;
@@ -80,6 +85,8 @@
 			{
 				half2 uv = i.uv.xy;
 
+
+
 				//Apply FishEye Fragment
 				//----
 				#if FISHEYE_ON_FRAGMENT
@@ -93,6 +100,13 @@
 
 				float4 _col = tex2D(_FrameBuffer, uv);
 
+				//Unactive Bloom Pass
+				#if BLOOM_ON
+				half3 _Bloom = tex2D(_BloomResult, uv).rgb;
+				_col.rgb += _Bloom * _BloomIntencity;
+				#endif
+				//----
+
 				//Apply LUT
 				#if LUT_ON
 				_col = saturate(_col);
@@ -105,11 +119,7 @@
 				#endif
 				//----
 
-				//Unactive Bloom Pass
-				#if BLOOM_ON
-				_col = BloomPass(_col);
-				#endif
-				//----
+
 
 				//Vignetting Pass
 				#if VIGNETTING_ON

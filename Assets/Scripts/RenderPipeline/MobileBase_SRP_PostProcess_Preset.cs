@@ -22,4 +22,10 @@ public class MobileBase_SRP_PostProcess_Preset : ScriptableObject
     public bool _USE_FishEye_Fragment;
     public bool _USE_FishEye_Vertex;
     public float _FishEye_Power;
+
+    [Space]
+
+    //Bloom 
+    public bool _USE_Bloom;
+    public float _BloomIntencity;
 }

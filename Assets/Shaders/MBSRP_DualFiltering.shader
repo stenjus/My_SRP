@@ -2,16 +2,17 @@
 {
 	Properties
 	{
-		_Offset("Offset", float) = 0.0
+		_MainTex("Texture", 2D) = "white" {}
+		//_Offset("Offset", float) = 0.0
 	}
 		SubShader
 		{
-			Tags { "RenderType" = "Opaque" }
+			ZTest Always Cull Off ZWrite Off
 
 			Pass
 			{
 				Name "Down Sample"
-				CGPROGRAM
+				HLSLPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
 				#include "UnityCG.cginc"
@@ -28,36 +29,99 @@
 					float4 vertex : SV_POSITION;
 				};
 
-				sampler2D _DualFilterTex;
-				float4 _DualFilterTex_ST;
-				half2 _DualFilterTex_TexelSize;
-				half _Offset;
+				sampler2D _MainTex;
+				half2 _MainTex_TexelSize;
+				half _BlurOffsetDown;
 
 				v2f vert(appdata v)
 				{
 					v2f o;
+
 					o.vertex = UnityObjectToClipPos(v.vertex);
-					half2 uv = TRANSFORM_TEX(v.uv, _DualFilterTex);
-					_DualFilterTex_TexelSize * 0.5;
+
+					half2 uv = v.uv;
+					_MainTex_TexelSize * 0.5;
 					o.uv[0] = uv;
-					o.uv[1] = uv - _DualFilterTex_TexelSize * half2(1 + _Offset, 1 + _Offset); //Top right
-					o.uv[2] = uv + _DualFilterTex_TexelSize * half2(1 + _Offset, 1 + _Offset); //Bottom left
-					o.uv[3] = uv - half2(_DualFilterTex_TexelSize.x, - _DualFilterTex_TexelSize.y) * half2(1 + _Offset, 1 + _Offset); //Top left
-					o.uv[4] = uv + half2(_DualFilterTex_TexelSize.x, - _DualFilterTex_TexelSize.y) * half2(1 + _Offset, 1 + _Offset); //Bottom right
+					o.uv[1] = uv - _MainTex_TexelSize * half2(1 + _BlurOffsetDown, 1 + _BlurOffsetDown); //Top right
+					o.uv[2] = uv + _MainTex_TexelSize * half2(1 + _BlurOffsetDown, 1 + _BlurOffsetDown); //Bottom left
+					o.uv[3] = uv - half2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * half2(1 + _BlurOffsetDown, 1 + _BlurOffsetDown); //Top left
+					o.uv[4] = uv + half2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * half2(1 + _BlurOffsetDown, 1 + _BlurOffsetDown); //Bottom right
 
 					return o;
 				}
 
 				fixed4 frag(v2f i) : SV_Target
 				{
-					half4 summary = tex2D(_DualFilterTex, i.uv[0]) * 4.0;
-					summary += tex2D(_DualFilterTex, i.uv[1]);
-					summary += tex2D(_DualFilterTex, i.uv[2]);
-					summary += tex2D(_DualFilterTex, i.uv[3]);
-					summary += tex2D(_DualFilterTex, i.uv[4]);
+					half4 summary = tex2D(_MainTex, i.uv[0]) * 4.0;
+					summary += tex2D(_MainTex, i.uv[1]);
+					summary += tex2D(_MainTex, i.uv[2]);
+					summary += tex2D(_MainTex, i.uv[3]);
+					summary += tex2D(_MainTex, i.uv[4]);
 					return summary * 0.125;
 				}
-				ENDCG
+				ENDHLSL
+			}
+
+			Pass
+			{
+				Name "Up Sample"
+				HLSLPROGRAM
+				#pragma vertex vert
+				#pragma fragment frag
+				#include "UnityCG.cginc"
+
+				struct appdata
+				{
+					float4 vertex : POSITION;
+					float2 uv : TEXCOORD0;
+				};
+
+				struct v2f
+				{
+					float2 uv[8] : TEXCOORD0;
+					float4 vertex : SV_POSITION;
+				};
+
+				sampler2D _MainTex;
+				half2 _MainTex_TexelSize;
+				half _BlurOffsetUp;
+
+				v2f vert(appdata v)
+				{
+					v2f o;
+
+					o.vertex = UnityObjectToClipPos(v.vertex);
+
+					half2 uv = v.uv;
+					_MainTex_TexelSize * 0.5;
+					_BlurOffsetUp = half2(_BlurOffsetUp + 1.0, _BlurOffsetUp + 1.0);
+
+					o.uv[0] = uv + half2(-_MainTex_TexelSize.x * 2.0, 0.0) * _BlurOffsetUp;
+					o.uv[1] = uv + half2(-_MainTex_TexelSize.x, _MainTex_TexelSize.y) * _BlurOffsetUp;
+					o.uv[2] = uv + half2(0.0, _MainTex_TexelSize.y * 2.0) * _BlurOffsetUp;
+					o.uv[3] = uv + _MainTex_TexelSize * _BlurOffsetUp;
+					o.uv[4] = uv + half2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurOffsetUp;
+					o.uv[5] = uv + half2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * _BlurOffsetUp;
+					o.uv[6] = uv + half2(0.0, -_MainTex_TexelSize.y * 2.0) * _BlurOffsetUp;
+					o.uv[7] = uv - _MainTex_TexelSize * _BlurOffsetUp;
+
+					return o;
+				}
+
+				fixed4 frag(v2f i) : SV_Target
+				{
+					half4 summary = 0;
+					summary += tex2D(_MainTex, i.uv[0]);
+					summary += tex2D(_MainTex, i.uv[1]) * 2.0;
+					summary += tex2D(_MainTex, i.uv[2]);
+					summary += tex2D(_MainTex, i.uv[3]) * 2.0;
+					summary += tex2D(_MainTex, i.uv[4]);
+					summary += tex2D(_MainTex, i.uv[5]) * 2.0;
+					summary += tex2D(_MainTex, i.uv[6]);
+					summary += tex2D(_MainTex, i.uv[7]) * 2.0;
+					return summary * 0.0833;
+				}
+				ENDHLSL
 			}
 		}
 }

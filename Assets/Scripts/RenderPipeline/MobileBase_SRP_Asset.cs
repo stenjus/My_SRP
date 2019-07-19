@@ -19,6 +19,9 @@ public class MobileBase_SRP_Asset : RenderPipelineAsset
     public bool _useVignetting = true;
     public bool _useLUT = true;
     public Material _DualFiltering;
+    public float _BlurOffsetDown = 1;
+    public float _BlurOffsetUp = 1;
+    public int _BluumPasses = 4;
 
     [Range(0, 10)] public int _DownScaleValue = 1;
 

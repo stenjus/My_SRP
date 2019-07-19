@@ -19,10 +19,13 @@ MonoBehaviour:
   _UseLinearLightIntencity: 1
   _RenderMesh: {fileID: 4300000, guid: aec430ebf7112ab4f93c1bdccedc6269, type: 2}
   _RenderMaterial: {fileID: 2100000, guid: 2164dc4db157fee47b61f3431d82faed, type: 2}
-  _useBloom: 0
+  _useBloom: 1
   _useFishEye: 1
   _useVignetting: 1
   _useLUT: 1
   _DualFiltering: {fileID: 2100000, guid: 4ddfa3b49fe4a344c99d725a264edf87, type: 2}
+  _BlurOffsetDown: 4.83
+  _BlurOffsetUp: 2.03
+  _BluumPasses: 4
   _DownScaleValue: 1
   _MobileBase_SRP_PostProcess_Controller: {fileID: 0}

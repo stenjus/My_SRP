@@ -32,6 +32,9 @@ public class MobileBase_SRP_AssetEditor : Editor
     SerializedProperty _useVignetting;
     SerializedProperty _useLUT;
     SerializedProperty _DualFiltering;
+    SerializedProperty _BlurOffsetDown;
+    SerializedProperty _BlurOffsetUp;
+    SerializedProperty _BluumPasses;
 
     //Enums
     LightColorSpace _lightColorSpaceEnums;
@@ -61,6 +64,9 @@ public class MobileBase_SRP_AssetEditor : Editor
     GUIContent _SubResLableContent = new GUIContent("Subresolution:");
     GUIContent _BlurFiltering = new GUIContent("Blur Filtering:");
     GUIContent _DualMaterialContent = new GUIContent("Dual Filtering Matrerial:");
+    GUIContent _BlurOffsetDownContent = new GUIContent("Filtering Offset Down:");
+    GUIContent _BlurOffsetUpContent = new GUIContent("Filtering Offset Up:");
+    GUIContent _BluumPassesContent = new GUIContent("Bloom passes count:");
 
     public override void OnInspectorGUI()
     {
@@ -176,7 +182,13 @@ public class MobileBase_SRP_AssetEditor : Editor
 
             EditorGUILayout.LabelField(_BlurFiltering, EditorStyles.boldLabel);
             _DualFiltering = serializedObject.FindProperty("_DualFiltering");
+            _BlurOffsetDown = serializedObject.FindProperty("_BlurOffsetDown");
+            _BlurOffsetUp = serializedObject.FindProperty("_BlurOffsetUp");
+            _BluumPasses = serializedObject.FindProperty("_BluumPasses");
             EditorGUILayout.ObjectField(_DualFiltering, _DualMaterialContent);
+            EditorGUILayout.Slider(_BlurOffsetDown, 0f, 10f, _BlurOffsetDownContent);
+            EditorGUILayout.Slider(_BlurOffsetUp, 0f, 10f, _BlurOffsetUpContent);
+            EditorGUILayout.IntSlider(_BluumPasses, 3, 10, _BluumPassesContent);
             serializedObject.ApplyModifiedProperties();
         }
         //CustomUI.GuiLineSeparator(10);

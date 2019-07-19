@@ -22,3 +22,5 @@ MonoBehaviour:
   _USE_FishEye_Fragment: 0
   _USE_FishEye_Vertex: 1
   _FishEye_Power: 0.1
+  _USE_Bloom: 1
+  _BloomIntencity: 0.3
