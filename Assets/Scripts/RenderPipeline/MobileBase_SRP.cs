@@ -97,16 +97,71 @@ public class MobileBase_SRP : RenderPipeline
         //Set global values and keywords for vignetting
         if (_PipeLineAsset._useVignetting)
         {
-
-            _PostProcessingBuffer.SetGlobalColor("_VignettingColor", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._VignettingColor);
-            _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Size", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Size);
-            _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Contrast", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Contrast);
-            _PostProcessingBuffer.EnableShaderKeyword("VIGNETTING_ON");
+            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Vignetting)
+            {
+                _PostProcessingBuffer.SetGlobalColor("_VignettingColor", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._VignettingColor);
+                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Size", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Size);
+                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Contrast", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Contrast);
+                _PostProcessingBuffer.EnableShaderKeyword("VIGNETTING_ON");
+            }
+            else
+            {
+                _PostProcessingBuffer.DisableShaderKeyword("VIGNETTING_ON");
+            }
         }
         else
         {
             _PostProcessingBuffer.DisableShaderKeyword("VIGNETTING_ON");
         }
+        //
+        //Set global values and keywords for vignetting
+        if (_PipeLineAsset._useLUT)
+        {
+            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_LUTGrading)
+            {
+                _PostProcessingBuffer.SetGlobalFloat("_LUT_Power", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._LUT_Power);
+                _PostProcessingBuffer.SetGlobalTexture("_LUT_Tex", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._LUT_Tex);
+                _PostProcessingBuffer.EnableShaderKeyword("LUT_ON");
+            }
+            else
+            {
+                _PostProcessingBuffer.DisableShaderKeyword("LUT_ON");
+            }
+        }
+        else
+        {
+            _PostProcessingBuffer.DisableShaderKeyword("LUT_ON");
+        }
+        //
+        //Set global values and keywords for vignetting
+        if (_PipeLineAsset._useFishEye)
+        {
+            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_FishEye_Fragment)
+            {
+                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._FishEye_Power);
+                _PostProcessingBuffer.EnableShaderKeyword("FISHEYE_ON_FRAGMENT");
+            }
+            else
+            {
+                _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_FRAGMENT");
+            }
+            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_FishEye_Vertex)
+            {
+                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._FishEye_Power);
+                _PostProcessingBuffer.EnableShaderKeyword("FISHEYE_ON_VERTEX");
+            }
+            else
+            {
+                _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_VERTEX");
+            }
+        }
+        else
+        {
+            _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_FRAGMENT");
+            _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_VERTEX");
+        }
+
+
         _Context.ExecuteCommandBuffer(_PostProcessingBuffer);
         _PostProcessingBuffer.Clear();
 

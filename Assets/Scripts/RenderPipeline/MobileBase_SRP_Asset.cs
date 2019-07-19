@@ -17,6 +17,7 @@ public class MobileBase_SRP_Asset : RenderPipelineAsset
     public bool _useBloom = false;
     public bool _useFishEye = true;
     public bool _useVignetting = true;
+    public bool _useLUT = true;
 
     [Range(0, 10)] public int _DownScaleValue = 1;
 

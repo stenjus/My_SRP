@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ae92cff3c63490479d30ca35aa749e9, type: 3}
   m_Name: MBSRP PostProccessing
   m_EditorClassIdentifier: 
+  _USE_Vignetting: 1
   _VignettingColor: {r: 0, g: 0, b: 0, a: 1}
-  _Vignetting_Size: 0.5
-  _Vignetting_Contrast: 0.2
+  _Vignetting_Size: 0.25
+  _Vignetting_Contrast: 0.01
+  _USE_LUTGrading: 1
+  _LUT_Tex: {fileID: 2800000, guid: 2bc83875a7a0ca741a49d96548f73a97, type: 3}
+  _LUT_Power: 0.506
+  _USE_FishEye_Fragment: 1
+  _USE_FishEye_Vertex: 0
+  _FishEye_Power: 0.1

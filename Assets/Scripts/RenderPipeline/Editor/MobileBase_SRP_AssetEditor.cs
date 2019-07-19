@@ -30,6 +30,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     SerializedProperty _useBloom;
     SerializedProperty _useFishEye;
     SerializedProperty _useVignetting;
+    SerializedProperty _useLUT;
 
     //Enums
     LightColorSpace _lightColorSpaceEnums;
@@ -54,6 +55,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     GUIContent _UseFishEyeContent = new GUIContent("Use FishEye:");
     GUIContent _UseVignettingContent = new GUIContent("Use Vignetting:");
     GUIContent _UseBloomContent = new GUIContent("Use Bloom:");
+    GUIContent _UseLUTContent = new GUIContent("Use LUT Grading:");
     GUIContent _PostGlobalTogglesLableContent = new GUIContent("Global post toggles:");
     GUIContent _SubResLableContent = new GUIContent("Subresolution:");
 
@@ -148,11 +150,13 @@ public class MobileBase_SRP_AssetEditor : Editor
             _useBloom = serializedObject.FindProperty("_useBloom");
             _useFishEye = serializedObject.FindProperty("_useFishEye");
             _useVignetting = serializedObject.FindProperty("_useVignetting");
+            _useLUT = serializedObject.FindProperty("_useLUT");
 
             EditorGUILayout.LabelField(_PostGlobalTogglesLableContent, EditorStyles.boldLabel);
             _useBloom.boolValue = EditorGUILayout.Toggle(_UseBloomContent, _useBloom.boolValue);
             _useFishEye.boolValue = EditorGUILayout.Toggle(_UseFishEyeContent, _useFishEye.boolValue);
             _useVignetting.boolValue = EditorGUILayout.Toggle(_UseVignettingContent, _useVignetting.boolValue);
+            _useLUT.boolValue = EditorGUILayout.Toggle(_UseLUTContent, _useLUT.boolValue);
 
             CustomUI.GuiLineSeparator(1);
 

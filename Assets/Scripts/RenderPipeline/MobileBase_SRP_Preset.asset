@@ -22,6 +22,7 @@ MonoBehaviour:
   _useBloom: 0
   _useFishEye: 1
   _useVignetting: 1
+  _useLUT: 1
   _DownScaleValue: 1
   _MobileBase_SRP_PostProcess_Controller: {fileID: 0}
   _Bloom: 1
