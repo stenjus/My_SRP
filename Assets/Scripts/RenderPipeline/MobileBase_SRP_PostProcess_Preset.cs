@@ -28,4 +28,11 @@ public class MobileBase_SRP_PostProcess_Preset : ScriptableObject
     //Bloom 
     public bool _USE_Bloom;
     public float _BloomIntencity;
+
+    [Space]
+    //Chormatic Aberration
+    public bool _USE_ChromaticAberration;
+    public float _Chromatic_Aberration_Offset;
+    public float _Chromatic_Aberration_Radius;
+
 }

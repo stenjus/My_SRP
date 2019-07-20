@@ -22,6 +22,7 @@ public class MobileBase_SRP_Asset : RenderPipelineAsset
     public float _BlurOffsetDown = 1;
     public float _BlurOffsetUp = 1;
     public int _BluumPasses = 4;
+    public bool _UseChromaticAberration = false;
 
     [Range(0, 10)] public int _DownScaleValue = 1;
 

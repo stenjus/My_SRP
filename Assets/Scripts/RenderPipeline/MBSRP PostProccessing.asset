@@ -18,9 +18,12 @@ MonoBehaviour:
   _Vignetting_Contrast: 0.01
   _USE_LUTGrading: 1
   _LUT_Tex: {fileID: 2800000, guid: 2bc83875a7a0ca741a49d96548f73a97, type: 3}
-  _LUT_Power: 0.506
+  _LUT_Power: 0.5
   _USE_FishEye_Fragment: 0
   _USE_FishEye_Vertex: 1
-  _FishEye_Power: 0.1
+  _FishEye_Power: 0.13
   _USE_Bloom: 1
-  _BloomIntencity: 0.3
+  _BloomIntencity: 1.41
+  _USE_ChromaticAberration: 1
+  _Chromatic_Aberration_Offset: 0.0064
+  _Chromatic_Aberration_Radius: 0.233

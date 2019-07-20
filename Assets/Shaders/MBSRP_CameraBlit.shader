@@ -2,6 +2,7 @@
 {
     Properties
     {
+		//_Chromatic_Aberration_Offset("Chromatic Aberration", Range(0.0, 1.0)) = 0.05
     }
 
     SubShader
@@ -17,6 +18,7 @@
 			#pragma multi_compile _ VIGNETTING_ON
 			#pragma multi_compile _ FISHEYE_ON_VERTEX FISHEYE_ON_FRAGMENT
 			#pragma multi_compile _ LUT_ON
+			#pragma multi_compile _ CHROMATIC_ABERRATION
 			#include "/ShaderLibrary/_MySRP_GlobalValues.hlsl"
 			#include "/ShaderLibrary/_MySRP_BloomPass.hlsl"
 			
@@ -41,6 +43,11 @@
 			#if BLOOM_ON
 			sampler2D _BloomResult;
 			float _BloomIntencity;
+			#endif
+
+			#if CHROMATIC_ABERRATION
+			float _Chromatic_Aberration_Offset;
+			float _Chromatic_Aberration_Radius;
 			#endif
 
 			struct VertexInput
@@ -98,7 +105,21 @@
 				#endif
 				//----
 
-				float4 _col = tex2D(_FrameBuffer, uv);
+
+				half4 _col = tex2D(_FrameBuffer, uv);
+
+				//Chromatic Aberration
+				//----
+				#if CHROMATIC_ABERRATION
+				half2 centerUv_Ch = i.uv.xy * 2.0f - 1.0f;
+				half circle_Ch = saturate(dot(centerUv_Ch, centerUv_Ch) * _Chromatic_Aberration_Radius);
+				_Chromatic_Aberration_Offset *= circle_Ch;
+				half _colR = tex2D(_FrameBuffer, half2(uv.x, uv.y - _Chromatic_Aberration_Offset)).r;
+				half _colG = tex2D(_FrameBuffer, half2(uv.x - _Chromatic_Aberration_Offset, uv.y)).g;
+				half _colB = tex2D(_FrameBuffer, half2(uv.x + _Chromatic_Aberration_Offset, uv.y)).b;
+				_col = half4(_colR, _colG, _colB, 1);
+				#endif
+				//----
 
 				//Unactive Bloom Pass
 				#if BLOOM_ON

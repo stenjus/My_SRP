@@ -65,6 +65,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
+    - _Chromatic_Aberration_Offset: 0.02
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0

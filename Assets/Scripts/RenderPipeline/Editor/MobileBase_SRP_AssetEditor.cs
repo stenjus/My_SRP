@@ -35,6 +35,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     SerializedProperty _BlurOffsetDown;
     SerializedProperty _BlurOffsetUp;
     SerializedProperty _BluumPasses;
+    SerializedProperty _UseChromaticAberration;
 
     //Enums
     LightColorSpace _lightColorSpaceEnums;
@@ -67,6 +68,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     GUIContent _BlurOffsetDownContent = new GUIContent("Filtering Offset Down:");
     GUIContent _BlurOffsetUpContent = new GUIContent("Filtering Offset Up:");
     GUIContent _BluumPassesContent = new GUIContent("Bloom passes count:");
+    GUIContent _UseChromaticAberrationContent = new GUIContent("Use Chromatic Aberration:");
 
     public override void OnInspectorGUI()
     {
@@ -160,11 +162,13 @@ public class MobileBase_SRP_AssetEditor : Editor
             _useFishEye = serializedObject.FindProperty("_useFishEye");
             _useVignetting = serializedObject.FindProperty("_useVignetting");
             _useLUT = serializedObject.FindProperty("_useLUT");
+            _UseChromaticAberration = serializedObject.FindProperty("_UseChromaticAberration");
 
             EditorGUILayout.LabelField(_PostGlobalTogglesLableContent, EditorStyles.boldLabel);
             _useBloom.boolValue = EditorGUILayout.Toggle(_UseBloomContent, _useBloom.boolValue);
             _useFishEye.boolValue = EditorGUILayout.Toggle(_UseFishEyeContent, _useFishEye.boolValue);
             _useVignetting.boolValue = EditorGUILayout.Toggle(_UseVignettingContent, _useVignetting.boolValue);
+            _UseChromaticAberration.boolValue = EditorGUILayout.Toggle(_UseChromaticAberrationContent, _UseChromaticAberration.boolValue);
             _useLUT.boolValue = EditorGUILayout.Toggle(_UseLUTContent, _useLUT.boolValue);
 
             CustomUI.GuiLineSeparator(1);
@@ -189,6 +193,7 @@ public class MobileBase_SRP_AssetEditor : Editor
             EditorGUILayout.Slider(_BlurOffsetDown, 0f, 10f, _BlurOffsetDownContent);
             EditorGUILayout.Slider(_BlurOffsetUp, 0f, 10f, _BlurOffsetUpContent);
             EditorGUILayout.IntSlider(_BluumPasses, 3, 10, _BluumPassesContent);
+            
             serializedObject.ApplyModifiedProperties();
         }
         //CustomUI.GuiLineSeparator(10);

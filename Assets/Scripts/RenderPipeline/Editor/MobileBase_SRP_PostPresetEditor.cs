@@ -28,6 +28,10 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     SerializedProperty _USE_Bloom;
     SerializedProperty _BloomIntencity;
 
+    SerializedProperty _USE_ChromaticAberration;
+    SerializedProperty _Chromatic_Aberration_Offset;
+    SerializedProperty _Chromatic_Aberration_Radius;
+
     //Additional Bools
     bool _USE_FishEye = true;
 
@@ -39,6 +43,7 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     bool _LUTFoldout = true;
     bool _FishEyeFoldout = true;
     bool _BloomFoldout = true;
+    bool _ChromaticAberrationFoldout = true;
 
     //GUI Content vars
     GUIContent _HeaderContent;
@@ -47,12 +52,16 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     GUIContent _VignettingColorContent = new GUIContent("Vignetting Color:");
     GUIContent _VignettingSizeContent = new GUIContent("Vignetting Size:");
     GUIContent _VignettingContrastContent = new GUIContent("Vignetting Contrast:");
+    GUIContent _USE_LUTContent = new GUIContent("Use LUT Grading:");
     GUIContent _LUTTexContent = new GUIContent("LUT Texture:");
     GUIContent _LUTPowerContent = new GUIContent("LUT Contribution:");
     GUIContent _USE_FishEyeContent = new GUIContent("Use FishEye:");
     GUIContent _FishEyePowerContent = new GUIContent("FishEye Power:");
     GUIContent _USE_BloomContent = new GUIContent("Use Bloom:");
     GUIContent _BloomIntencityContent = new GUIContent("Bloom Intencity:");
+    GUIContent _USE_ChromaticAberrationContent = new GUIContent("Use Chromatic Aberration:");
+    GUIContent _Chromatic_Aberration_OffsetContent = new GUIContent("Chromatic Aberration Offset:");
+    GUIContent _Chromatic_Aberration_RadiusContent = new GUIContent("Chromatic Aberration Radius:");
 
     public override void OnInspectorGUI()
     {
@@ -99,7 +108,7 @@ public class MobileBase_SRP_PostPresetEditor : Editor
             _LUT_Tex = serializedObject.FindProperty("_LUT_Tex");
             _LUT_Power = serializedObject.FindProperty("_LUT_Power");
 
-            _USE_LUTGrading.boolValue = EditorGUILayout.Toggle(_USE_VignettingContent, _USE_LUTGrading.boolValue);
+            _USE_LUTGrading.boolValue = EditorGUILayout.Toggle(_USE_LUTContent, _USE_LUTGrading.boolValue);
             if (_USE_LUTGrading.boolValue)
             {
                 EditorGUILayout.ObjectField(_LUT_Tex, _LUTTexContent);
@@ -108,7 +117,7 @@ public class MobileBase_SRP_PostPresetEditor : Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-        //LUT Foldout
+        //FishEye Foldout
         CustomUI.GuiLineSeparator(2);
         _FishEyeFoldout = CustomUI.FoldOut("FishEye Distorsion", _FishEyeFoldout);
         EditorGUILayout.Separator();
@@ -136,10 +145,32 @@ public class MobileBase_SRP_PostPresetEditor : Editor
             _BloomIntencity = serializedObject.FindProperty("_BloomIntencity");
 
             _USE_Bloom.boolValue = EditorGUILayout.Toggle(_USE_BloomContent, _USE_Bloom.boolValue);
-            EditorGUILayout.Slider(_BloomIntencity, 0.0f, 5.0f, _BloomIntencityContent);
+            if(_USE_Bloom.boolValue)
+            {
+                EditorGUILayout.Slider(_BloomIntencity, 0.0f, 5.0f, _BloomIntencityContent);
+            }
             serializedObject.ApplyModifiedProperties();
         }
-            
+
+        //Chromatic Aberration Foldout
+        CustomUI.GuiLineSeparator(2);
+        _ChromaticAberrationFoldout = CustomUI.FoldOut("Chromatic Aberration", _ChromaticAberrationFoldout);
+        EditorGUILayout.Separator();
+        if (_ChromaticAberrationFoldout)
+        {
+            _USE_ChromaticAberration = serializedObject.FindProperty("_USE_ChromaticAberration");
+            _Chromatic_Aberration_Offset = serializedObject.FindProperty("_Chromatic_Aberration_Offset");
+            _Chromatic_Aberration_Radius = serializedObject.FindProperty("_Chromatic_Aberration_Radius");
+
+            _USE_ChromaticAberration.boolValue = EditorGUILayout.Toggle(_USE_ChromaticAberrationContent, _USE_ChromaticAberration.boolValue);
+            if (_USE_ChromaticAberration.boolValue)
+            {
+                EditorGUILayout.Slider(_Chromatic_Aberration_Offset, 0.001f, 0.1f, _Chromatic_Aberration_OffsetContent);
+                EditorGUILayout.Slider(_Chromatic_Aberration_Radius, 0.0f, 1.0f, _Chromatic_Aberration_RadiusContent);
+            }
+            serializedObject.ApplyModifiedProperties();
+        }
+
         //Usage Tip
         EditorGUILayout.Separator();
         EditorGUILayout.HelpBox("To use this Preset in your scene, please add 'MSRP PostProcess Controller' to any object on the scene and assign this preset into it", MessageType.None);

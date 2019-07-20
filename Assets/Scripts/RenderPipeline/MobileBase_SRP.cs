@@ -293,6 +293,18 @@ public class MobileBase_SRP : RenderPipeline
         {
             _PostProcessingBuffer.DisableShaderKeyword("BLOOM_ON");
         }
+        //
+        //Set global values and keywords for Chromatic Aberration
+        if (_PipeLineAsset._UseChromaticAberration && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_ChromaticAberration)
+        {
+            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Offset", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Chromatic_Aberration_Offset);
+            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Radius", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Chromatic_Aberration_Radius);
+            _PostProcessingBuffer.EnableShaderKeyword("CHROMATIC_ABERRATION");
+        }
+        else
+        {
+            _PostProcessingBuffer.DisableShaderKeyword("CHROMATIC_ABERRATION");
+        }
 
 
         _Context.ExecuteCommandBuffer(_PostProcessingBuffer);
@@ -378,6 +390,8 @@ public class MobileBase_SRP : RenderPipeline
         int _DualFilterTex = Shader.PropertyToID("_DualFilterTex");
         int _BlurOffsetDown = Shader.PropertyToID("_BlurOffsetDown");
         int _BlurOffsetUp = Shader.PropertyToID("_BlurOffsetUp");
+        int _BrightID = Shader.PropertyToID("_BrightID");
+        int _BloomResult = Shader.PropertyToID("_BloomResult");
         int passes = _PipeLineAsset._BluumPasses;
         int[] _DownID = new int[passes];
         int[] _UpID = new int[passes];
@@ -393,26 +407,39 @@ public class MobileBase_SRP : RenderPipeline
             _UpID[i] = Shader.PropertyToID("_UpID" + i);
         }
 
+        //Bright Pass
+        _BloomBuffer.GetTemporaryRT(_BrightID, _ScreenWidth, _ScreenHeight, 0, FilterMode.Bilinear);
+        _BloomBuffer.Blit(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID, _BrightID, DualFilterMat, 2);
+
         //DownScale Pass
         for (int i = 1; i < passes; i++)
         {
             _BloomBuffer.GetTemporaryRT(_DownID[i], _ScreenWidth >> i, _ScreenHeight >> i, 0, FilterMode.Bilinear);
             if (i == 1)
             {
-                _BloomBuffer.Blit(MobileBase_SRP_CommonValues.RenderTexture.FrameBufferID, _DownID[i], DualFilterMat, 0);
+                _BloomBuffer.Blit(_BrightID, _DownID[i], DualFilterMat, 0);
             }
             else _BloomBuffer.Blit(_DownID[i -1], _DownID[i], DualFilterMat, 0);
         }
 
-        for (int i = passes - 1; i > 0; i--)
+        //UpScale Pass LongTail
+        for (int i = passes - 2; i > 0; i--)
         {
-            _BloomBuffer.GetTemporaryRT(_UpID[i - 1], _ScreenWidth >> i, _ScreenHeight >> i, 0, FilterMode.Bilinear);
-            if (i == passes - 1)
+            _BloomBuffer.GetTemporaryRT(_UpID[i], _ScreenWidth >> i, _ScreenHeight >> i, 0, FilterMode.Bilinear);
+            _BloomBuffer.SetGlobalTexture("_BloomUp", _DownID[i]);
+            if (i == passes - 2)
             {
-                _BloomBuffer.Blit(_DownID[i], _UpID[i], DualFilterMat, 1);
+                _BloomBuffer.Blit(_DownID[i + 1], _UpID[i], DualFilterMat, 1);
             }
-            else _BloomBuffer.Blit(_UpID[i], _UpID[i - 1], DualFilterMat, 1);
+            else
+            {
+                _BloomBuffer.Blit(_UpID[i + 1], _UpID[i], DualFilterMat, 1);
+            }
         }
+
+        _BloomBuffer.GetTemporaryRT(_BloomResult, _ScreenWidth, _ScreenHeight, 0, FilterMode.Bilinear);
+        _BloomBuffer.SetGlobalTexture("_BloomUp", _DownID[1]);
+        _BloomBuffer.Blit(_UpID[1], _BloomResult, DualFilterMat, 1);
 
         //CleanUp Chain
         for (int i = 0; i < passes; i++)
@@ -423,8 +450,6 @@ public class MobileBase_SRP : RenderPipeline
         {
             _BloomBuffer.ReleaseTemporaryRT(_UpID[i]);
         }
-        
-        _BloomBuffer.SetGlobalTexture("_BloomResult", _UpID[0]);
 
         _Context.ExecuteCommandBuffer(_BloomBuffer);
         _BloomBuffer.Clear();
