@@ -32,6 +32,8 @@ public class MobileBase_SRP_PostPresetEditor : Editor
     SerializedProperty _Chromatic_Aberration_Offset;
     SerializedProperty _Chromatic_Aberration_Radius;
 
+
+
     //Additional Bools
     bool _USE_FishEye = true;
 

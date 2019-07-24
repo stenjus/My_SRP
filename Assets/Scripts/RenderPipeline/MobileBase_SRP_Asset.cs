@@ -24,6 +24,9 @@ public class MobileBase_SRP_Asset : RenderPipelineAsset
     public int _BluumPasses = 4;
     public bool _UseChromaticAberration = false;
 
+    //Default Post Preset
+    public MobileBase_SRP_PostProcess_Preset _DefaultPostPreset;
+
     [Range(0, 10)] public int _DownScaleValue = 1;
 
     public MobileBase_SRP_PostProcess_Controller _MobileBase_SRP_PostProcess_Controller;

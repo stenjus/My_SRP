@@ -28,5 +28,6 @@ MonoBehaviour:
   _BlurOffsetUp: 0
   _BluumPasses: 5
   _UseChromaticAberration: 1
+  _DefaultPostPreset: {fileID: 11400000, guid: 6b9e85587a478344fbdce7b915b9c255, type: 2}
   _DownScaleValue: 1
   _MobileBase_SRP_PostProcess_Controller: {fileID: 0}

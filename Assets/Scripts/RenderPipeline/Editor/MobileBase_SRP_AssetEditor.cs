@@ -36,6 +36,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     SerializedProperty _BlurOffsetUp;
     SerializedProperty _BluumPasses;
     SerializedProperty _UseChromaticAberration;
+    SerializedProperty _DefaultPostPreset;
 
     //Enums
     LightColorSpace _lightColorSpaceEnums;
@@ -69,6 +70,7 @@ public class MobileBase_SRP_AssetEditor : Editor
     GUIContent _BlurOffsetUpContent = new GUIContent("Filtering Offset Up:");
     GUIContent _BluumPassesContent = new GUIContent("Bloom passes count:");
     GUIContent _UseChromaticAberrationContent = new GUIContent("Use Chromatic Aberration:");
+    GUIContent _DefaultPostPresetContent = new GUIContent("Default PostProcessing Preset:");
 
     public override void OnInspectorGUI()
     {
@@ -170,6 +172,11 @@ public class MobileBase_SRP_AssetEditor : Editor
             _useVignetting.boolValue = EditorGUILayout.Toggle(_UseVignettingContent, _useVignetting.boolValue);
             _UseChromaticAberration.boolValue = EditorGUILayout.Toggle(_UseChromaticAberrationContent, _UseChromaticAberration.boolValue);
             _useLUT.boolValue = EditorGUILayout.Toggle(_UseLUTContent, _useLUT.boolValue);
+
+            CustomUI.GuiLineSeparator(1);
+
+            _DefaultPostPreset = serializedObject.FindProperty("_DefaultPostPreset");
+            EditorGUILayout.ObjectField(_DefaultPostPreset, _DefaultPostPresetContent);
 
             CustomUI.GuiLineSeparator(1);
 

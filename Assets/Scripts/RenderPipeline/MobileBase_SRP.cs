@@ -40,6 +40,8 @@ public class MobileBase_SRP : RenderPipeline
     Vector4[] _visibleLightSpotDirections = new Vector4[_maxVisibleLights];
 
     //Post Processing values
+    MobileBase_SRP_PostProcess_Preset _PostSettingsSource;
+
     //SubRes Settings
     int _lowResW;
     int _lowResH;
@@ -91,6 +93,16 @@ public class MobileBase_SRP : RenderPipeline
 
         _Context.SetupCameraProperties(_Camera); //SetUp Camera Matrix (transformation)
         _ClearFlags = _Camera.clearFlags; //Setup clearflags from from active camera
+
+        //Select between scene local or global post processing presets
+        if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller == null || _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset == null)
+        {
+            _PostSettingsSource = _PipeLineAsset._DefaultPostPreset;
+        }
+        else
+        {
+            _PostSettingsSource = _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset;
+        }
 
         //Invoke SetPostprocessingValues function
         SetPostprocessingValues(_Context);
@@ -153,8 +165,11 @@ public class MobileBase_SRP : RenderPipeline
             _FilterSettings
         );
 
+
+           // Debug.Log(_PostSettingsSource._USE_Vignetting);
+
         //Invoke Bloom Post void
-        if (_PipeLineAsset._useBloom && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Bloom)
+        if (_PipeLineAsset._useBloom && _PostSettingsSource._USE_Bloom)
         {
             BloomPost(_Context, _lowResW, _lowResH);
         }
@@ -219,11 +234,11 @@ public class MobileBase_SRP : RenderPipeline
         //Set global values and keywords for vignetting
         if (_PipeLineAsset._useVignetting)
         {
-            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Vignetting)
+            if (_PostSettingsSource._USE_Vignetting)
             {
-                _PostProcessingBuffer.SetGlobalColor("_VignettingColor", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._VignettingColor);
-                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Size", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Size);
-                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Contrast", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Vignetting_Contrast);
+                _PostProcessingBuffer.SetGlobalColor("_VignettingColor", _PostSettingsSource._VignettingColor);
+                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Size", _PostSettingsSource._Vignetting_Size);
+                _PostProcessingBuffer.SetGlobalFloat("_Vignetting_Contrast", _PostSettingsSource._Vignetting_Contrast);
                 _PostProcessingBuffer.EnableShaderKeyword("VIGNETTING_ON");
             }
             else
@@ -239,10 +254,10 @@ public class MobileBase_SRP : RenderPipeline
         //Set global values and keywords for vignetting
         if (_PipeLineAsset._useLUT)
         {
-            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_LUTGrading)
+            if (_PostSettingsSource._USE_LUTGrading)
             {
-                _PostProcessingBuffer.SetGlobalFloat("_LUT_Power", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._LUT_Power);
-                _PostProcessingBuffer.SetGlobalTexture("_LUT_Tex", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._LUT_Tex);
+                _PostProcessingBuffer.SetGlobalFloat("_LUT_Power", _PostSettingsSource._LUT_Power);
+                _PostProcessingBuffer.SetGlobalTexture("_LUT_Tex", _PostSettingsSource._LUT_Tex);
                 _PostProcessingBuffer.EnableShaderKeyword("LUT_ON");
             }
             else
@@ -258,18 +273,18 @@ public class MobileBase_SRP : RenderPipeline
         //Set global values and keywords for vignetting
         if (_PipeLineAsset._useFishEye)
         {
-            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_FishEye_Fragment)
+            if (_PostSettingsSource._USE_FishEye_Fragment)
             {
-                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._FishEye_Power);
+                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PostSettingsSource._FishEye_Power);
                 _PostProcessingBuffer.EnableShaderKeyword("FISHEYE_ON_FRAGMENT");
             }
             else
             {
                 _PostProcessingBuffer.DisableShaderKeyword("FISHEYE_ON_FRAGMENT");
             }
-            if (_PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_FishEye_Vertex)
+            if (_PostSettingsSource._USE_FishEye_Vertex)
             {
-                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._FishEye_Power);
+                _PostProcessingBuffer.SetGlobalFloat("_FishEye", _PostSettingsSource._FishEye_Power);
                 _PostProcessingBuffer.EnableShaderKeyword("FISHEYE_ON_VERTEX");
             }
             else
@@ -284,9 +299,9 @@ public class MobileBase_SRP : RenderPipeline
         }
         //
         //Set global values and keywords for Bloom
-        if (_PipeLineAsset._useBloom && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_Bloom)
+        if (_PipeLineAsset._useBloom && _PostSettingsSource._USE_Bloom)
         {
-            _PostProcessingBuffer.SetGlobalFloat("_BloomIntencity", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._BloomIntencity);
+            _PostProcessingBuffer.SetGlobalFloat("_BloomIntencity", _PostSettingsSource._BloomIntencity);
             _PostProcessingBuffer.EnableShaderKeyword("BLOOM_ON");
         }
         else
@@ -295,10 +310,10 @@ public class MobileBase_SRP : RenderPipeline
         }
         //
         //Set global values and keywords for Chromatic Aberration
-        if (_PipeLineAsset._UseChromaticAberration && _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._USE_ChromaticAberration)
+        if (_PipeLineAsset._UseChromaticAberration && _PostSettingsSource._USE_ChromaticAberration)
         {
-            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Offset", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Chromatic_Aberration_Offset);
-            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Radius", _PipeLineAsset._MobileBase_SRP_PostProcess_Controller._PostProcessPreset._Chromatic_Aberration_Radius);
+            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Offset", _PostSettingsSource._Chromatic_Aberration_Offset);
+            _PostProcessingBuffer.SetGlobalFloat("_Chromatic_Aberration_Radius", _PostSettingsSource._Chromatic_Aberration_Radius);
             _PostProcessingBuffer.EnableShaderKeyword("CHROMATIC_ABERRATION");
         }
         else
