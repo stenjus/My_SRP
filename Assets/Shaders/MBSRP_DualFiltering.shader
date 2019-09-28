@@ -2,7 +2,7 @@
 {
 	Properties
 	{
-		_MainTex("Texture", 2D) = "white" {}
+		//_MainTex("Texture", 2D) = "white" {}
 		_Bright("Offset", float) = 0.0
 		_Bright2("Offset", float) = 0.0
 	}

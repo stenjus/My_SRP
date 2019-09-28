@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public static class CustomUI
+public static class CustomUi
 {
     public static bool FoldOut(string title, bool display)
     {
@@ -33,17 +33,17 @@ public static class CustomUI
         return display;
     }
 
-    public static void GuiLine(int i_height = 1)
+    public static void GuiLine(int iHeight = 1)
     {
-        Rect rect = EditorGUILayout.GetControlRect(false, i_height);
-        rect.height = i_height;
+        Rect rect = EditorGUILayout.GetControlRect(false, iHeight);
+        rect.height = iHeight;
         EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
     }
 
-    public static void GuiLineSeparator(int i_height = 1)
+    public static void GuiLineSeparator(int iHeight = 1)
     {
         EditorGUILayout.Separator();
-        CustomUI.GuiLine(i_height);
+        CustomUi.GuiLine(iHeight);
         EditorGUILayout.Separator();
     }
 }

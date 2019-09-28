@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class InstancedColor : MonoBehaviour
 {
-    [SerializeField] Color _Color = Color.white;
-    static MaterialPropertyBlock _propertyBlock;
-    static int _colorID = Shader.PropertyToID("_Color");
+    [SerializeField] Color color = Color.white;
+    static MaterialPropertyBlock propertyBlock;
+    static int colorId = Shader.PropertyToID("_Color");
 
     void Awake()
     {
@@ -15,11 +15,11 @@ public class InstancedColor : MonoBehaviour
 
     private void OnValidate()
     {
-        if (_propertyBlock == null)
+        if (propertyBlock == null)
         {
-            _propertyBlock = new MaterialPropertyBlock();
+            propertyBlock = new MaterialPropertyBlock();
         }
-        _propertyBlock.SetColor(_colorID, _Color);
-        GetComponent<MeshRenderer>().SetPropertyBlock(_propertyBlock);
+        propertyBlock.SetColor(colorId, color);
+        GetComponent<MeshRenderer>().SetPropertyBlock(propertyBlock);
     }
 }
