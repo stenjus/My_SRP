@@ -2,9 +2,8 @@
 {
 	Properties
 	{
-		//_MainTex("Texture", 2D) = "white" {}
+		_MainTex("Texture", 2D) = "black" {}
 		_Bright("Offset", float) = 0.0
-		_Bright2("Offset", float) = 0.0
 	}
 		SubShader
 		{
@@ -149,7 +148,6 @@
 
 				sampler2D _MainTex;
 				float _Bright;
-				float _Bright2;
 
 				v2f vert(appdata v)
 				{

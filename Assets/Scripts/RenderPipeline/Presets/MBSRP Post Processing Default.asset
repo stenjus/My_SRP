@@ -16,13 +16,13 @@ MonoBehaviour:
   VignettingColor: {r: 0, g: 0, b: 0, a: 1}
   VignettingSize: 0.5
   VignettingContrast: 0.2
-  UseLUTGrading: 1
+  UseLUTGrading: 0
   LUTTex: {fileID: 2800000, guid: 2bc83875a7a0ca741a49d96548f73a97, type: 3}
   LUTPower: 0.3
-  UseFishEyeFragment: 1
-  UseFishEyeVertex: 0
+  UseFishEyeFragment: 0
+  UseFishEyeVertex: 1
   FishEyePower: 0.025
-  UseBloom: 0
+  UseBloom: 1
   BloomIntensity: 1
   UseChromaticAberration: 1
   ChromaticAberrationOffset: 0.005

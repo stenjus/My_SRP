@@ -8,6 +8,7 @@
     {
         Pass
         {
+            Tags { "LightMode" = "Forward" }
 			HLSLPROGRAM
 			#pragma target 3.5
 			#pragma vertex Lit_Pas_Vertex

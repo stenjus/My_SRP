@@ -23,9 +23,9 @@ MonoBehaviour:
   UseGlobalVignetting: 1
   UseGlobalLut: 1
   DualFiltering: {fileID: 2100000, guid: 4ddfa3b49fe4a344c99d725a264edf87, type: 2}
-  BlurOffsetDown: 1
-  BlurOffsetUp: 1
-  BloomPasses: 4
+  BlurOffsetDown: 1.63
+  BlurOffsetUp: 1.52
+  BloomPasses: 3
   UseChromaticAberration: 1
   DefaultPostPreset: {fileID: 11400000, guid: e6b99828c632654419f12749653faef2, type: 2}
   DownScaleValue: 1

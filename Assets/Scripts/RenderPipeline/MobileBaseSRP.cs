@@ -6,27 +6,26 @@ public partial class MobileBaseSRP : RenderPipeline
 {
 
     //SRP Main Variables
-    ScriptableCullingParameters cullingParams;
-    CameraClearFlags clearFlags;
-    CullingResults cull;
-    DrawingSettings drawSettings;
-    FilteringSettings filterSettings;
-    SortingSettings   sortingSettings;
+    private ScriptableCullingParameters cullingParams;
+    private CameraClearFlags clearFlags;
+    private CullingResults cull;
+    private DrawingSettings drawSettings;
+    private FilteringSettings filterSettings;
+    private SortingSettings   sortingSettings;
 
     //Command Buffers
-    CommandBuffer cameraBuffer             = new CommandBuffer { name = "Render Camera Buffer" };
-    CommandBuffer clearBuffer              = new CommandBuffer { name = "Clear Buffer" };
-    CommandBuffer cullingBuffer            = new CommandBuffer { name = "Culling Buffer" };
-    CommandBuffer blitBuffer               = new CommandBuffer { name = "Blit Buffer" };
-    CommandBuffer bloomBuffer              = new CommandBuffer { name = "Bloom Buffer" };
-    CommandBuffer lightingBuffer           = new CommandBuffer { name = "Lighting Buffer" };
-    CommandBuffer postProcessingBuffer     = new CommandBuffer { name = "PostProcessing Buffer" };
+    readonly CommandBuffer cameraBuffer             = new CommandBuffer { name = "Render Camera Buffer" };
+    readonly CommandBuffer clearBuffer              = new CommandBuffer { name = "Clear Buffer" };
+    readonly CommandBuffer blitBuffer               = new CommandBuffer { name = "Blit Buffer" };
+    readonly CommandBuffer bloomBuffer              = new CommandBuffer { name = "Bloom Buffer" };
+    readonly CommandBuffer lightingBuffer           = new CommandBuffer { name = "Lighting Buffer" };
+    readonly CommandBuffer postProcessingBuffer     = new CommandBuffer { name = "PostProcessing Buffer" };
 
     //Preset Imported
-    MobileBaseSRPAsset pipeLineAsset;
-    Material errorMaterial;
-    Material renderMaterial;
-    Mesh renderMesh;
+    private MobileBaseSRPAsset pipeLineAsset;
+    private Material errorMaterial;
+    private Material renderMaterial;
+    private Mesh renderMesh;
 
     //Lighting variable
     static readonly int MaxVisibleLights = 16;
@@ -36,20 +35,20 @@ public partial class MobileBaseSRP : RenderPipeline
     static readonly int VisibleLightAttenuationId = Shader.PropertyToID("_VisibleLightAttenuation");
     static readonly int VisibleLightSpotDirectionsId = Shader.PropertyToID("_visibleLightSpotDirections");
 
-    Vector4[] visibleLightColors;
-    Vector4[] visibleLightDirectionOrPosition;
-    Vector4[] visibleLightAttenuations = new Vector4[MaxVisibleLights];
-    Vector4[] visibleLightSpotDirections = new Vector4[MaxVisibleLights];
+    private Vector4[] visibleLightColors;
+    private Vector4[] visibleLightDirectionOrPosition;
+    private Vector4[] visibleLightAttenuations = new Vector4[MaxVisibleLights];
+    private Vector4[] visibleLightSpotDirections = new Vector4[MaxVisibleLights];
 
     //Post Processing values
-    MobileBaseSRPPostProcessPreset postSettingsSource;
+    private MobileBaseSRPPostProcessPreset postSettingsSource;
 
     //SubRes Settings
-    int lowResW;
-    int lowResH;
+    private int lowResW;
+    private int lowResH;
 
     //Constructor
-    public MobileBaseSRP(MobileBaseSRPAsset inPipeLineAsset, Material inShaderErrorMaterial)
+    public MobileBaseSRP(MobileBaseSRPAsset inPipeLineAsset)
     {
         pipeLineAsset = inPipeLineAsset;
         errorMaterial = pipeLineAsset.ShaderErrorMaterial;
@@ -71,7 +70,7 @@ public partial class MobileBaseSRP : RenderPipeline
         }
     }
 
-    void Render(ScriptableRenderContext context, Camera camera)
+    private void Render(ScriptableRenderContext context, Camera camera)
     {
         //Setup culling for current camera
         if (!camera.TryGetCullingParameters(out cullingParams))
@@ -109,8 +108,12 @@ public partial class MobileBaseSRP : RenderPipeline
 
         //Define render target as Temporary render texture
         MobileBaseSRPCommonValues.RenderTexture.FrameBufferId = new RenderTargetIdentifier(MobileBaseSRPCommonValues.RenderTexture.FrameBuffer);
-        MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor = new RenderTextureDescriptor(lowResW, lowResH, RenderTextureFormat.ARGBHalf, 32);
-        MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor.memoryless = RenderTextureMemoryless.Depth;
+        MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor =
+            new RenderTextureDescriptor(lowResW, lowResH, RenderTextureFormat.ARGBHalf, 32)
+            {
+                memoryless = RenderTextureMemoryless.Depth
+            };
+        
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor.memoryless |= RenderTextureMemoryless.MSAA;
 
         blitBuffer.GetTemporaryRT(MobileBaseSRPCommonValues.RenderTexture.FrameBuffer, MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor, FilterMode.Bilinear);
@@ -131,14 +134,19 @@ public partial class MobileBaseSRP : RenderPipeline
         //FrameDebugger Sampling
         cameraBuffer.BeginSample("Render Camera Buffer");
 
-        //Define SortingsSettings and DrawSettings
-        sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque }; //Set sorting flags for opquare render
+        //Define SortingSettings and DrawSettings
+        sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque }; //Set sorting flags for opaque render
         drawSettings = new DrawingSettings(new ShaderTagId("Forward"), sortingSettings)
         {enableDynamicBatching = pipeLineAsset.InDynamicBatching, enableInstancing = pipeLineAsset.GpuInstancing, perObjectData = PerObjectData.LightIndices};
-
-        //Opaquere Filter and Render
+        
+        //Opaque Filter and Render
         filterSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
         context.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+        
+        //Draw none MBSRP renders
+        #if UNITY_EDITOR
+        DrawDefaultPipeline(context);
+        #endif
 
         //SkyBox Rendering before Transparent
         context.DrawSkybox(camera);
@@ -147,7 +155,7 @@ public partial class MobileBaseSRP : RenderPipeline
         sortingSettings.criteria        = SortingCriteria.CommonTransparent;
         filterSettings.renderQueueRange = RenderQueueRange.transparent;
 
-        //Finaly Draw Culled and filtered renders
+        //Finally Draw Culled and filtered renders
         context.DrawRenderers(cull, ref drawSettings, ref filterSettings);
 
         cameraBuffer.EndSample("Render Camera Buffer");
@@ -159,15 +167,21 @@ public partial class MobileBaseSRP : RenderPipeline
         blitBuffer.SetGlobalTexture("_FrameBuffer", MobileBaseSRPCommonValues.RenderTexture.FrameBufferId);
         blitBuffer.Blit(MobileBaseSRPCommonValues.RenderTexture.FrameBufferId, BuiltinRenderTextureType.CameraTarget);
         blitBuffer.DrawMesh(pipeLineAsset.RenderMesh, Matrix4x4.identity, pipeLineAsset.RenderMaterial);
+        
+        //Execute Bloom postprocess
+        if (pipeLineAsset.UseGlobalBloom && postSettingsSource.UseBloom)
+        {
+            BloomPost(context, lowResW, lowResH);
+        }
+        
         context.ExecuteCommandBuffer(blitBuffer);
         blitBuffer.Clear();
-
         context.Submit();
     }
 
     //Default Unity Pipeline used for rendering Unity included shader side Editor or in Development builds
     [Conditional ("UNITY_EDITOR"), Conditional ("DEVELOPMENT_BUILD")]
-    private void DrawDefaultPipeline(ScriptableRenderContext contex, Camera camera)
+    private void DrawDefaultPipeline(ScriptableRenderContext contex)
     {
         if (errorMaterial == null)
         {
@@ -178,19 +192,17 @@ public partial class MobileBaseSRP : RenderPipeline
                 hideFlags = HideFlags.HideAndDontSave
             };
         }
-
         sortingSettings.criteria = SortingCriteria.CommonOpaque;
-        var drawSettings = new DrawingSettings(new ShaderTagId("ForwardBase"), sortingSettings);
-        drawSettings.SetShaderPassName(1, new ShaderTagId("PrepassBase"));
-        drawSettings.SetShaderPassName(2, new ShaderTagId("Always"));
-        drawSettings.SetShaderPassName(3, new ShaderTagId("Vertex"));
-        drawSettings.SetShaderPassName(4, new ShaderTagId("VertexLMRGBM"));
-        drawSettings.SetShaderPassName(5, new ShaderTagId("VertexLM"));
-        drawSettings.overrideMaterial = errorMaterial;
-        drawSettings.overrideMaterialPassIndex = 0;
-        var filterSettings = new FilteringSettings();
+        var drawingSettings = new DrawingSettings(new ShaderTagId("ForwardBase"), sortingSettings);
+        drawingSettings.SetShaderPassName(1, new ShaderTagId("PrepassBase"));
+        drawingSettings.SetShaderPassName(2, new ShaderTagId("Always"));
+        drawingSettings.SetShaderPassName(3, new ShaderTagId("Vertex"));
+        drawingSettings.SetShaderPassName(4, new ShaderTagId("VertexLMRGBM"));
+        drawingSettings.SetShaderPassName(5, new ShaderTagId("VertexLM"));
+        drawingSettings.overrideMaterial = errorMaterial;
+        drawingSettings.overrideMaterialPassIndex = 0;
 
-        contex.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+        contex.DrawRenderers(cull, ref drawingSettings, ref filterSettings);
     }
 
     private void SetDownScaledResolution(Camera camera)
@@ -385,7 +397,6 @@ public partial class MobileBaseSRP : RenderPipeline
     private void BloomPost(ScriptableRenderContext context, int screenWidth, int screenHeight)
     {
         Material dualFilterMat = pipeLineAsset.DualFiltering;
-        int dualFilterTex = Shader.PropertyToID("_DualFilterTex");
         int blurOffsetDown = Shader.PropertyToID("_BlurOffsetDown");
         int blurOffsetUp = Shader.PropertyToID("_BlurOffsetUp");
         int brightId = Shader.PropertyToID("_BrightID");

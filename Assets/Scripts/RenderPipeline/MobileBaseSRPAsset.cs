@@ -33,6 +33,6 @@ public class MobileBaseSRPAsset : RenderPipelineAsset
 
 	protected override RenderPipeline CreatePipeline()
 	{
-        return new MobileBaseSRP(this, ShaderErrorMaterial);
+        return new MobileBaseSRP(this);
     }
 }
