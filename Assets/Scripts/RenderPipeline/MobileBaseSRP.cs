@@ -421,10 +421,10 @@ public partial class MobileBaseSRP : RenderPipeline
         bloomBuffer.Blit(MobileBaseSRPCommonValues.RenderTexture.FrameBufferId, brightId, dualFilterMat, 2);
 
         //DownScale Pass
-        for (int i = 1; i < passes; i++)
+        for (int i = 0; i < passes; i++)
         {
-            bloomBuffer.GetTemporaryRT(downId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
-            if (i == 1)
+            bloomBuffer.GetTemporaryRT(downId[i], screenWidth >> i * 2, screenHeight >> i * 2, 0, FilterMode.Bilinear);
+            if (i == 0)
             {
                 bloomBuffer.Blit(brightId, downId[i], dualFilterMat, 0);
             }
@@ -432,9 +432,9 @@ public partial class MobileBaseSRP : RenderPipeline
         }
 
         //UpScale Pass LongTail
-        for (int i = passes - 2; i > 0; i--)
+        /*for (int i = passes - 2; i > 0; i--)
         {
-            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
+            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i + 1, screenHeight >> i + 1, 0, FilterMode.Bilinear);
             bloomBuffer.SetGlobalTexture("_BloomUp", downId[i]);
             if (i == passes - 2)
             {
@@ -444,11 +444,16 @@ public partial class MobileBaseSRP : RenderPipeline
             {
                 bloomBuffer.Blit(upId[i + 1], upId[i], dualFilterMat, 1);
             }
+        }*/
+        for (int i = passes - 1; i > 0; i--)
+        {
+            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
+            bloomBuffer.Blit(downId[i], upId[i], dualFilterMat, 1);
         }
 
         bloomBuffer.GetTemporaryRT(bloomResult, screenWidth, screenHeight, 0, FilterMode.Bilinear);
-        bloomBuffer.SetGlobalTexture("_BloomUp", downId[1]);
         bloomBuffer.Blit(upId[1], bloomResult, dualFilterMat, 1);
+        bloomBuffer.SetGlobalTexture("_BloomResult", bloomResult);
 
         //CleanUp Chain
         for (int i = 0; i < passes; i++)

@@ -21,12 +21,12 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" />
-        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPCommonValues.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" />
+        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" />
+        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" />
       </list>
     </option>

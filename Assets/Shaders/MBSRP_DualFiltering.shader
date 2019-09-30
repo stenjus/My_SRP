@@ -86,7 +86,6 @@
 				sampler2D _MainTex;
 				half2 _MainTex_TexelSize;
 				half _BlurOffsetUp;
-				sampler2D _BloomUp;
 
 				v2f vert(appdata v)
 				{

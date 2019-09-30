@@ -124,7 +124,7 @@
 				//Unactive Bloom Pass
 				#if BLOOM_ON
 				half3 _Bloom = tex2D(_BloomResult, uv).rgb;
-				_col.rgb += _Bloom * _BloomIntencity;
+				_col.rgb = _Bloom * _BloomIntencity;
 				#endif
 				//----
 
