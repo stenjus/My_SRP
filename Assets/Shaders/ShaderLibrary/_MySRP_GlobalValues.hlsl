@@ -21,11 +21,7 @@ CBUFFER_START(_LightBuffer)
 	float4 _VisibleLightAttenuation[MAX_VISIBLE_LIGHTS];
 	float4 _visibleLightSpotDirections[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
-
-#define BLOOM_PASSES_COUNT 6
-CBUFFER_START(_BloomBuffer)
-	//sampler2D _BloomPassFrameBuffer1;
-CBUFFER_END
+ 
 
 #define UNITY_MATRIX_M unity_ObjectToWorld
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"

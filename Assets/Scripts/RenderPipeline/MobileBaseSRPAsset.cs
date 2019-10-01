@@ -4,7 +4,10 @@ using UnityEngine.Rendering;
 [CreateAssetMenu(menuName = "Presets/Mobile Base SRP Preset")]
 public class MobileBaseSRPAsset : RenderPipelineAsset
 {
+    //Default materials
     public Material ShaderErrorMaterial;
+    public Material defaultMaterialOverride;
+    
     public bool InDynamicBatching;
     public bool GpuInstancing;
     public bool UseLinearLightIntensity = true;
@@ -26,6 +29,10 @@ public class MobileBaseSRPAsset : RenderPipelineAsset
 
     //Default Post Preset
     public MobileBaseSRPPostProcessPreset DefaultPostPreset;
+    
+    //Set default materials
+    public override Material defaultMaterial => defaultMaterialOverride;
+    public override Shader defaultShader => Shader.Find("My SRP/Unlit");
 
     [Range(0, 10)] public int DownScaleValue = 1;
 

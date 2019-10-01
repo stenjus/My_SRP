@@ -67,7 +67,7 @@ public static class MobileBaseSRPBloom
             
         }
         
-        bloomBuffer.GetTemporaryRT(bloomResult, screenWidth, screenHeight, 0, FilterMode.Bilinear);
+        bloomBuffer.GetTemporaryRT(bloomResult, screenWidth * 2, screenHeight * 2, 0, FilterMode.Bilinear);
         bloomBuffer.Blit(upId[1], bloomResult, dualFilterMat, 1);
         bloomBuffer.SetGlobalTexture("_BloomResult", bloomResult);
 

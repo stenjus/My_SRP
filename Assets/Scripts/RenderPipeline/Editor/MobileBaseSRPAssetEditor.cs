@@ -20,6 +20,7 @@ public class MobileBaseSRPAssetEditor : Editor
 {
     //Preset Variables
     SerializedProperty shaderErrorMaterial;
+    SerializedProperty defaultMaterialOverride;
     SerializedProperty useLinearLightIntensity;
     SerializedProperty gpuInstancing;
     SerializedProperty inDynamicBatching;
@@ -98,15 +99,22 @@ public class MobileBaseSRPAssetEditor : Editor
         {
             shaderErrorMaterial = serializedObject.FindProperty("ShaderErrorMaterial");
             useLinearLightIntensity = serializedObject.FindProperty("UseLinearLightIntensity");
+            defaultMaterialOverride = serializedObject.FindProperty("defaultMaterialOverride");
 
             //Shader Error material field
             EditorGUILayout.ObjectField(shaderErrorMaterial);
-            serializedObject.ApplyModifiedProperties();
             if (shaderErrorMaterial.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox("Warning: Shader Error material is not assigned. Please assign one!", MessageType.Warning);
             }
-
+            
+            EditorGUILayout.ObjectField(defaultMaterialOverride);
+            if (defaultMaterialOverride.objectReferenceValue == null)
+            {
+                EditorGUILayout.HelpBox("Warning: Default Unlit material is not assigned. Please assign one!", MessageType.Warning);
+            }
+            serializedObject.ApplyModifiedProperties();
+            
             //Light Attenuation type selector
             lightColorSpaceEnums = (LightColorSpace)EditorGUILayout.EnumPopup("Light Attenuation Formule:", lightColorSpaceEnums);
             ChangeLightAttenuationType(lightColorSpaceEnums);

@@ -28,7 +28,6 @@
           <e p="MBSRP_ShaderError.shader" t="Include" />
           <e p="MBSRP_Unlit.shader" t="Include" />
           <e p="ShaderLibrary" t="Include">
-            <e p="_MySRP_BloomPass.hlsl" t="Include" />
             <e p="_MySRP_GlobalValues.hlsl" t="Include" />
             <e p="_MySRP_Lit.hlsl" t="Include" />
             <e p="_MySRP_Unlit.hlsl" t="Include" />

@@ -20,7 +20,7 @@
 			#pragma multi_compile _ LUT_ON
 			#pragma multi_compile _ CHROMATIC_ABERRATION
 			#include "/ShaderLibrary/_MySRP_GlobalValues.hlsl"
-			#include "/ShaderLibrary/_MySRP_BloomPass.hlsl"
+			//#include "/ShaderLibrary/_MySRP_BloomPass.hlsl"
 			
 
 
