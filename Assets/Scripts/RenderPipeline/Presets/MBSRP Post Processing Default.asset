@@ -23,7 +23,7 @@ MonoBehaviour:
   UseFishEyeVertex: 1
   FishEyePower: 0.025
   UseBloom: 1
-  BloomIntensity: 1
+  BloomIntensity: 5
   UseChromaticAberration: 1
-  ChromaticAberrationOffset: 0.005
+  ChromaticAberrationOffset: 0.023
   ChromaticAberrationRadius: 0.1

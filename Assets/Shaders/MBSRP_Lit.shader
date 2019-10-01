@@ -16,7 +16,6 @@
 			#pragma multi_compile_instancing
 			#pragma instancing_options assumeuniformscaling
 			#include "/ShaderLibrary/_MySRP_Lit.hlsl"
-
 			ENDHLSL
         }
     }

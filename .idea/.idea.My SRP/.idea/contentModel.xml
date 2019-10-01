@@ -15,6 +15,7 @@
             </e>
             <e p="MobileBaseSRP.cs" t="Include" />
             <e p="MobileBaseSRPAsset.cs" t="Include" />
+            <e p="MobileBaseSRPBloom.cs" t="Include" />
             <e p="MobileBaseSRPCommonValues.cs" t="Include" />
             <e p="MobileBaseSRPPostProcessController.cs" t="Include" />
             <e p="MobileBaseSRPPostProcessPreset.cs" t="Include" />

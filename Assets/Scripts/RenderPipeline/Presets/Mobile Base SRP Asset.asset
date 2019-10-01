@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShaderErrorMaterial: {fileID: 2100000, guid: a4b5a73f102d31c47801b20520833f10, type: 2}
   InDynamicBatching: 0
-  GpuInstancing: 1
+  GpuInstancing: 0
   UseLinearLightIntensity: 1
   RenderMesh: {fileID: 4300000, guid: aec430ebf7112ab4f93c1bdccedc6269, type: 2}
   RenderMaterial: {fileID: 2100000, guid: 2164dc4db157fee47b61f3431d82faed, type: 2}
@@ -22,10 +22,10 @@ MonoBehaviour:
   UseGlobalFishEye: 1
   UseGlobalVignetting: 1
   UseGlobalLut: 1
-  DualFiltering: {fileID: 2100000, guid: 4ddfa3b49fe4a344c99d725a264edf87, type: 2}
-  BlurOffsetDown: 2.4
+  DualFiltering: {fileID: 2100000, guid: 89708842a45d94a3d84dc101a914ed80, type: 2}
+  BlurOffsetDown: 0
   BlurOffsetUp: 0
-  BloomPasses: 3
+  BloomPasses: 5
   UseChromaticAberration: 1
   DefaultPostPreset: {fileID: 11400000, guid: e6b99828c632654419f12749653faef2, type: 2}
   DownScaleValue: 1

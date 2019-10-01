@@ -13,6 +13,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_Unlit.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPCommonValues.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPBloom.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" root0="FORCE_HIGHLIGHTING" />
@@ -24,10 +25,11 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPCommonValues.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" />
-        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPBloom.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" />
+        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" />
       </list>
     </option>
   </component>

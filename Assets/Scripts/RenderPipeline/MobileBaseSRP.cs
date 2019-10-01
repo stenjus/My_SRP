@@ -40,7 +40,7 @@ public partial class MobileBaseSRP : RenderPipeline
     private Vector4[] visibleLightAttenuations = new Vector4[MaxVisibleLights];
     private Vector4[] visibleLightSpotDirections = new Vector4[MaxVisibleLights];
 
-    //Post Processing values
+    //Post Processing
     private MobileBaseSRPPostProcessPreset postSettingsSource;
 
     //SubRes Settings
@@ -109,7 +109,7 @@ public partial class MobileBaseSRP : RenderPipeline
         //Define render target as Temporary render texture
         MobileBaseSRPCommonValues.RenderTexture.FrameBufferId = new RenderTargetIdentifier(MobileBaseSRPCommonValues.RenderTexture.FrameBuffer);
         MobileBaseSRPCommonValues.RenderTexture.FrameBufferDescriptor =
-            new RenderTextureDescriptor(lowResW, lowResH, RenderTextureFormat.ARGBHalf, 32)
+            new RenderTextureDescriptor(lowResW, lowResH, RenderTextureFormat.ARGBFloat, 32)
             {
                 memoryless = RenderTextureMemoryless.Depth
             };
@@ -171,7 +171,8 @@ public partial class MobileBaseSRP : RenderPipeline
         //Execute Bloom postprocess
         if (pipeLineAsset.UseGlobalBloom && postSettingsSource.UseBloom)
         {
-            BloomPost(context, lowResW / 2, lowResH / 2);
+            MobileBaseSRPBloom.BloomPost(context,lowResH / 2, lowResH / 2, pipeLineAsset);
+            //BloomPost(context, lowResW / 2, lowResH / 2); 
         }
         
         context.ExecuteCommandBuffer(blitBuffer);
@@ -418,7 +419,8 @@ public partial class MobileBaseSRP : RenderPipeline
 
         //Bright Pass
         bloomBuffer.GetTemporaryRT(brightId, screenWidth, screenHeight, 0, FilterMode.Bilinear);
-        bloomBuffer.Blit(MobileBaseSRPCommonValues.RenderTexture.FrameBufferId, brightId, dualFilterMat, 2);
+        bloomBuffer.SetGlobalTexture("_BrightPassTex", MobileBaseSRPCommonValues.RenderTexture.FrameBufferId);
+        bloomBuffer.Blit(null, brightId, dualFilterMat, 2);
 
         //DownScale Pass
         for (int i = 0; i < passes; i++)
@@ -426,9 +428,14 @@ public partial class MobileBaseSRP : RenderPipeline
             bloomBuffer.GetTemporaryRT(downId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
             if (i == 0)
             {
-                bloomBuffer.Blit(brightId, downId[i], dualFilterMat, 0);
+                bloomBuffer.SetGlobalTexture("_DownScalePassTex", brightId);
+                bloomBuffer.Blit(null, downId[i], dualFilterMat, 0);
             }
-            else bloomBuffer.Blit(downId[i -1], downId[i], dualFilterMat, 0);
+            else
+            {
+                bloomBuffer.SetGlobalTexture("_DownScalePassTex", downId[i - 1]);
+                bloomBuffer.Blit(null, downId[i], dualFilterMat, 0);
+            }
         }
         
         //UpScale Pass
@@ -437,13 +444,17 @@ public partial class MobileBaseSRP : RenderPipeline
             bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
             if (i == passes - 1)
             {
-                bloomBuffer.Blit(downId[i], upId[i], dualFilterMat, 1);
+                bloomBuffer.SetGlobalTexture("_UpscalePassTex", downId[i]);
+                bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
+                bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
             }
             else
             {
-                bloomBuffer.Blit(upId[i + 1], upId[i], dualFilterMat, 1);
+                bloomBuffer.SetGlobalTexture("_UpscalePassTex", upId[i + 1]);
+                bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
+                bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
             }
-            bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
+            
         }
         
         bloomBuffer.GetTemporaryRT(bloomResult, screenWidth, screenHeight, 0, FilterMode.Bilinear);
