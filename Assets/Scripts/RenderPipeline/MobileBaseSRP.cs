@@ -171,7 +171,7 @@ public partial class MobileBaseSRP : RenderPipeline
         //Execute Bloom postprocess
         if (pipeLineAsset.UseGlobalBloom && postSettingsSource.UseBloom)
         {
-            BloomPost(context, lowResW, lowResH);
+            BloomPost(context, lowResW / 2, lowResH / 2);
         }
         
         context.ExecuteCommandBuffer(blitBuffer);
@@ -423,34 +423,29 @@ public partial class MobileBaseSRP : RenderPipeline
         //DownScale Pass
         for (int i = 0; i < passes; i++)
         {
-            bloomBuffer.GetTemporaryRT(downId[i], screenWidth >> i * 2, screenHeight >> i * 2, 0, FilterMode.Bilinear);
+            bloomBuffer.GetTemporaryRT(downId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
             if (i == 0)
             {
                 bloomBuffer.Blit(brightId, downId[i], dualFilterMat, 0);
             }
             else bloomBuffer.Blit(downId[i -1], downId[i], dualFilterMat, 0);
         }
-
-        //UpScale Pass LongTail
-        /*for (int i = passes - 2; i > 0; i--)
+        
+        //UpScale Pass
+        for (int i = passes - 1; i > 0; i--)
         {
-            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i + 1, screenHeight >> i + 1, 0, FilterMode.Bilinear);
-            bloomBuffer.SetGlobalTexture("_BloomUp", downId[i]);
-            if (i == passes - 2)
+            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
+            if (i == passes - 1)
             {
-                bloomBuffer.Blit(downId[i + 1], upId[i], dualFilterMat, 1);
+                bloomBuffer.Blit(downId[i], upId[i], dualFilterMat, 1);
             }
             else
             {
                 bloomBuffer.Blit(upId[i + 1], upId[i], dualFilterMat, 1);
             }
-        }*/
-        for (int i = passes - 1; i > 0; i--)
-        {
-            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear);
-            bloomBuffer.Blit(downId[i], upId[i], dualFilterMat, 1);
+            bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
         }
-
+        
         bloomBuffer.GetTemporaryRT(bloomResult, screenWidth, screenHeight, 0, FilterMode.Bilinear);
         bloomBuffer.Blit(upId[1], bloomResult, dualFilterMat, 1);
         bloomBuffer.SetGlobalTexture("_BloomResult", bloomResult);

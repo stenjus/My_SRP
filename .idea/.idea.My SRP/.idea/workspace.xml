@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aaab71a2-3ba1-40a2-b3af-ce3405928add" name="Default Changelist" comment="" />
@@ -9,14 +9,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_Unlit.shader" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPCommonValues.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -25,9 +25,9 @@
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_ShaderError.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_Lit.shader" />
-        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" />
+        <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_DualFiltering.shader" />
       </list>
     </option>
   </component>
@@ -58,10 +58,10 @@
       <option name="userSelectedPid" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" pid="17835">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" />
+      <option name="pid" value="17835" />
       <option name="userSelectedPid" value="false" />
       <method v="2" />
     </configuration>

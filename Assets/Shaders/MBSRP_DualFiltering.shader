@@ -84,6 +84,7 @@
 				};
 
 				sampler2D _MainTex;
+				sampler2D _DownPass;
 				half2 _MainTex_TexelSize;
 				half _BlurOffsetUp;
 
@@ -120,7 +121,10 @@
 					summary += tex2D(_MainTex, i.uv[5]) * 2.0;
 					summary += tex2D(_MainTex, i.uv[6]);
 					summary += tex2D(_MainTex, i.uv[7]) * 2.0;
-					return summary * 0.0833;
+					
+					half4 downP = tex2D(_DownPass, i.uv[7] + (_MainTex_TexelSize / 0.5f) * _BlurOffsetUp);
+					//return  downP * 0.3f;
+					return (summary * 0.0833) * 0.7f + downP * 0.3f;
 				}
 				ENDHLSL
 			}

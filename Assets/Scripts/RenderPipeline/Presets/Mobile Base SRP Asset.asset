@@ -23,7 +23,7 @@ MonoBehaviour:
   UseGlobalVignetting: 1
   UseGlobalLut: 1
   DualFiltering: {fileID: 2100000, guid: 4ddfa3b49fe4a344c99d725a264edf87, type: 2}
-  BlurOffsetDown: 6.14
+  BlurOffsetDown: 2.4
   BlurOffsetUp: 0
   BloomPasses: 3
   UseChromaticAberration: 1
