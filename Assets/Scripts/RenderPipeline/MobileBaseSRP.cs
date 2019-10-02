@@ -171,7 +171,7 @@ public partial class MobileBaseSRP : RenderPipeline
         //Execute Bloom postproces
         if (pipeLineAsset.UseGlobalBloom && postSettingsSource.UseBloom)
         {
-            MobileBaseSRPBloom.BloomPost(context,lowResH / 2, lowResH / 2, pipeLineAsset);
+            MobileBaseSRPBloom.BloomPost(context,lowResW / 2, lowResH / 2, pipeLineAsset);
             //BloomPost(context, lowResW / 2, lowResH / 2); 
         }
         

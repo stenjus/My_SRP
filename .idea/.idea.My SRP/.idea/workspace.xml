@@ -33,9 +33,9 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRP.cs" />
         <option value="$PROJECT_DIR$/Assets/Shaders/ShaderLibrary/_MySRP_GlobalValues.hlsl" />
         <option value="$PROJECT_DIR$/Assets/Shaders/MBSRP_CameraBlit.shader" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPBloom.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPAsset.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/Editor/MobileBaseSRPAssetEditor.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/RenderPipeline/MobileBaseSRPBloom.cs" />
       </list>
     </option>
   </component>
