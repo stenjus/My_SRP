@@ -108,9 +108,22 @@
 
 				half4 _col = tex2D(_FrameBuffer, uv);
 
-				//Chromatic Aberration
+				//Chromatic Aberration with Bloom
 				//----
-				#if CHROMATIC_ABERRATION
+				#if CHROMATIC_ABERRATION && BLOOM_ON
+				half2 centerUv_Ch = i.uv.xy * 2.0f - 1.0f;
+				half circle_Ch = saturate(dot(centerUv_Ch, centerUv_Ch) * _Chromatic_Aberration_Radius);
+				_Chromatic_Aberration_Offset *= circle_Ch;
+				half _colR = tex2D(_FrameBuffer, half2(uv.x, uv.y - _Chromatic_Aberration_Offset)).r;
+				half _colG = tex2D(_FrameBuffer, half2(uv.x - _Chromatic_Aberration_Offset, uv.y)).g;
+				half _colB = tex2D(_FrameBuffer, half2(uv.x + _Chromatic_Aberration_Offset, uv.y)).b;
+				_col = half4(_colR, _colG, _colB, 1);
+				#endif
+				//----
+				
+				//Chromatic Aberration without Bloom
+				//----
+				#if CHROMATIC_ABERRATION && !BLOOM_ON
 				half2 centerUv_Ch = i.uv.xy * 2.0f - 1.0f;
 				half circle_Ch = saturate(dot(centerUv_Ch, centerUv_Ch) * _Chromatic_Aberration_Radius);
 				_Chromatic_Aberration_Offset *= circle_Ch;

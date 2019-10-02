@@ -49,22 +49,31 @@ public static class MobileBaseSRPBloom
         }
         
         //UpScale Pass
-        for (int i = passes - 1; i > 0; i--)
+        for (int i = passes - 2; i > 0; i--)
         {
-            bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i, screenHeight >> i, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
-            if (i == passes - 1)
+            if (i == passes -  2)
             {
-                bloomBuffer.SetGlobalTexture("_UpscalePassTex", downId[i]);
-                bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
-                bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
+                //WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING
+                //WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING
+                //WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING GOVNOCOD WARNING
             }
             else
             {
-                bloomBuffer.SetGlobalTexture("_UpscalePassTex", upId[i + 1]);
-                bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
-                bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
+                bloomBuffer.GetTemporaryRT(upId[i], screenWidth >> i + 1, screenHeight >> i + 1, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+                if (i == passes - 3)
+                {
+                    bloomBuffer.SetGlobalTexture("_UpscalePassTex", upId[i]);
+                    bloomBuffer.SetGlobalTexture("_DownPass", downId[i + 1]);
+                    bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
+                }
+                else
+                {
+                    bloomBuffer.SetGlobalTexture("_UpscalePassTex", upId[i + 1]);
+                    bloomBuffer.SetGlobalTexture("_DownPass", downId[i]);
+                    bloomBuffer.Blit(null, upId[i], dualFilterMat, 1);
+                }
             }
-            
+
         }
         
         bloomBuffer.GetTemporaryRT(bloomResult, screenWidth * 2, screenHeight * 2, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
@@ -76,7 +85,7 @@ public static class MobileBaseSRPBloom
         {
             bloomBuffer.ReleaseTemporaryRT(downId[i]);
         }
-        for (int i = passes - 1; i > 0; i--)
+        for (int i = passes - 2; i > 0; i--)
         {
             bloomBuffer.ReleaseTemporaryRT(upId[i]);
         }
